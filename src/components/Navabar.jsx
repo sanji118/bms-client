@@ -35,7 +35,7 @@ const Navbar = () => {
     };
 
     return (
-        <div className="md:fixed z-10 navbar bg-base-100 shadow-lg">
+        <div className="md:fixed z-50 navbar bg-base-100 shadow-lg">
             <div className="navbar-start">
                 {/* Mobile menu button */}
                 <div className="dropdown sm:hidden">

@@ -1,16 +1,8 @@
+import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
+import { Icon } from 'leaflet';
+import 'leaflet/dist/leaflet.css';
 import { useEffect, useState } from 'react';
 import axios from 'axios';
-import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
-import L from 'leaflet';
-import 'leaflet/dist/leaflet.css';
-
-// Fix default icon issue
-delete L.Icon.Default.prototype._getIconUrl;
-L.Icon.Default.mergeOptions({
-  iconRetinaUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon-2x.png',
-  iconUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-icon.png',
-  shadowUrl: 'https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.7.1/images/marker-shadow.png',
-});
 
 const ApartmentLocation = () => {
   const [apartments, setApartments] = useState([]);
@@ -18,32 +10,57 @@ const ApartmentLocation = () => {
   useEffect(() => {
     axios.get('http://localhost:5000/apartments')
       .then(res => setApartments(res.data))
-      .catch(err => console.error('Failed to fetch:', err));
+      .catch(err => console.error(err));
   }, []);
 
-  const center = [23.8103, 90.4125]; // Dhaka
+  const customIcon = new Icon({
+    iconUrl: 'https://cdn-icons-png.flaticon.com/512/684/684908.png',
+    iconSize: [30, 30],
+  });
+
+  const center = [23.8103, 90.4125];
 
   return (
-    <div className="container mx-auto px-4 py-10">
-      <h2 className="text-3xl font-bold text-center mb-6">Apartment Locations Map</h2>
+    <section className="py-16 px-4 sm:px-6 lg:px-8 bg-gray-50">
+      <div className="max-w-6xl mx-auto">
+        {/* Heading */}
+        <div className="text-center mb-10">
+          <h2 className="text-3xl font-extrabold text-yellow-500 mb-2">Apartment Location</h2>
+          <p className="text-gray-600 text-lg">Find our apartments across Dhaka city with convenient access to transportation and amenities.</p>
+        </div>
 
-      <MapContainer center={center} zoom={12} scrollWheelZoom={false} className="h-[500px] w-full rounded-lg shadow">
-        <TileLayer
-          attribution='&copy; OpenStreetMap'
-          url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
-        />
-        {apartments.map((apt, idx) => (
-          apt.location?.lat && apt.location?.lng && (
-            <Marker key={idx} position={[apt.location.lat, apt.location.lng]}>
-              <Popup>
-                Block {apt.block_name}, Apt {apt.apartment_no}<br />
-                {apt.location.address}
-              </Popup>
-            </Marker>
-          )
-        ))}
-      </MapContainer>
-    </div>
+        {/* Map Card */}
+        <div className="rounded-xl shadow-lg overflow-hidden transition-all duration-300 hover:shadow-2xl">
+          <div className="relative z-0 h-[500px] w-11/12 mx-auto">
+            <MapContainer
+              center={center}
+              zoom={12}
+              scrollWheelZoom={true}
+              className="h-full w-full z-0"
+            >
+              <TileLayer
+                url="https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"
+              />
+              {apartments.map((apartment, index) => (
+                <Marker
+                  key={index}
+                  position={apartment.location}
+                  icon={customIcon}
+                >
+                  <Popup>
+                    <div className="text-sm">
+                      <p className="font-bold">Block {apartment.block_name} - Apt {apartment.apartment_no}</p>
+                      <p>Floor: {apartment.floor_no}</p>
+                      <p>Rent: ${apartment.rent}</p>
+                    </div>
+                  </Popup>
+                </Marker>
+              ))}
+            </MapContainer>
+          </div>
+        </div>
+      </div>
+    </section>
   );
 };
 

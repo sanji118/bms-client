@@ -2,6 +2,44 @@ import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
 
+const COLOR_PALETTE = [
+  { 
+    name: 'yellow',
+    border: 'border-yellow-300',
+    bg: 'bg-yellow-100',
+    text: 'text-yellow-800',
+    button: 'bg-yellow-600 hover:bg-yellow-700'
+  },
+  { 
+    name: 'pink',
+    border: 'border-pink-300',
+    bg: 'bg-pink-100',
+    text: 'text-pink-800',
+    button: 'bg-pink-600 hover:bg-pink-700'
+  },
+  { 
+    name: 'green',
+    border: 'border-green-300',
+    bg: 'bg-green-100',
+    text: 'text-green-800',
+    button: 'bg-green-600 hover:bg-green-700'
+  },
+  { 
+    name: 'blue',
+    border: 'border-blue-300',
+    bg: 'bg-blue-100',
+    text: 'text-blue-800',
+    button: 'bg-blue-600 hover:bg-blue-700'
+  },
+  { 
+    name: 'purple',
+    border: 'border-purple-300',
+    bg: 'bg-purple-100',
+    text: 'text-purple-800',
+    button: 'bg-purple-600 hover:bg-purple-700'
+  }
+];
+
 const CouponSection = () => {
   const [activeCoupon, setActiveCoupon] = useState(null);
   const [coupons, setCoupons] = useState([]);
@@ -30,36 +68,8 @@ const CouponSection = () => {
     exit: { rotateY: -90, opacity: 0 }
   };
 
-
-  const getColorClasses = (couponId) => {
-    
-    const colors = [
-      { 
-        name: 'yellow',
-        border: 'border-yellow-300',
-        bg: 'bg-yellow-100',
-        text: 'text-yellow-800',
-        button: 'bg-yellow-600 hover:bg-yellow-700'
-      },
-      { 
-        name: 'pink',
-        border: 'border-pink-300',
-        bg: 'bg-pink-100',
-        text: 'text-pink-800',
-        button: 'bg-pink-600 hover:bg-pink-700'
-      },
-      { 
-        name: 'green',
-        border: 'border-green-300',
-        bg: 'bg-green-100',
-        text: 'text-green-800',
-        button: 'bg-green-600 hover:bg-green-700'
-      }
-    ];
-    
-    
-    const colorIndex = couponId ? couponId % colors.length : 0;
-    return colors[colorIndex];
+  const getColorClasses = (index) => {
+    return COLOR_PALETTE[index % COLOR_PALETTE.length] || COLOR_PALETTE[0];
   };
 
   if (loading) {
@@ -75,7 +85,7 @@ const CouponSection = () => {
 
   if (error) {
     return (
-      <section className="py-12 px-4 bg-gradient-to-r from-indigo-50 to-blue-50">
+      <section className="py-12 px-4 bg-gradient-to-r from-yellow-100 to-yellow-50">
         <div className="max-w-6xl mx-auto text-center">
           <p className="text-red-500">Error loading coupons: {error}</p>
         </div>
@@ -95,12 +105,12 @@ const CouponSection = () => {
           </div>
         ) : (
           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-            {coupons.map((coupon) => {
-              const color = getColorClasses(coupon.id || 0); // Fallback to 0 if no ID
+            {coupons.map((coupon, index) => {
+              const color = getColorClasses(index);
               
               return (
                 <motion.div
-                  key={coupon.id || coupon.code} // Use code as fallback key
+                  key={coupon.id || index}
                   className="relative cursor-pointer h-full min-h-[300px]"
                   whileHover={{ y: -5 }}
                   onClick={() => setActiveCoupon(activeCoupon === coupon.id ? null : coupon.id)}
