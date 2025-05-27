@@ -1,4 +1,4 @@
-import {  useState } from 'react';
+import {  useEffect, useState } from 'react';
 import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
 import { Link, useNavigate } from 'react-router-dom';
@@ -10,12 +10,19 @@ import Lottie from 'lottie-react';
 import loginAnimation from '../assets/Animation - 1748331899107.json'
 import Logo from '../components/Logo';
 import WebsiteName from '../components/WebsiteName';
+import { saveUserToDB } from '../utils/saveUserToDB';
 
 const Login = () => {
-  const [showPassword, setShowPassword] = useState(false);
-  const {signInWithGoogle,signIn} = useAuth();
-  const navigate = useNavigate();
+    const [users, setUsers] = useState(null);
+    const [showPassword, setShowPassword] = useState(false);
+    const {signInWithGoogle,signIn, user} = useAuth();
+    const navigate = useNavigate();
 
+  useEffect(()=>{
+    if(user){
+        navigate('/')
+    }
+  }, [user])
 
   const handleLogin = e =>{
     e.preventDefault();
@@ -35,19 +42,20 @@ const Login = () => {
       console.log(errorMessage);
     })
   }
-
-  const googleSignin = ()=>{
-    signInWithGoogle()
-    .then(result=>{
-      const res = GoogleAuthProvider.credentialFromResult(result);
-      const user = result.user;
-      toast.success('Successfully registered !')
-      navigate('/')
-    })
-    .catch(error =>{
+  
+  const googleSignin = async()=>{
+    try{
+        const result = await signInWithGoogle();
+        const loggedInUser = result.user;
+        setUsers(loggedInUser);
+        await saveUserToDB(loggedInUser);
+        toast.success('Successfully registered !')
+        navigate('/')
+    }
+    catch{error =>{
       const errorMessage = error.message;
-       console.log(errorMessage)
-    })
+       console.error(errorMessage, error)
+    }}
   }
 
 

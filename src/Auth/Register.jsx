@@ -1,16 +1,22 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { GoogleAuthProvider } from 'firebase/auth';
+import { GoogleAuthProvider, updateProfile } from 'firebase/auth';
 import { FaGoogle } from 'react-icons/fa';
 import { useAuth } from '../hook/useAuth';
 import { Key } from 'lucide-react';
 import Logo from '../components/Logo';
 import WebsiteName from '../components/WebsiteName';
+import { useEffect } from 'react';
 
 const Register = () => {
-  const {createUser, signInWithGoogle} = useAuth();
+  const {createUser, signInWithGoogle, user} = useAuth();
   const navigate = useNavigate();
 
+  useEffect(()=>{
+      if(user){
+          navigate('/')
+      }
+    }, [user])
   const handleRegister = e =>{
     e.preventDefault();
     const form = e.target;
@@ -33,10 +39,16 @@ const Register = () => {
       return
     }
     createUser(email, password)
-      .then(result =>{
+      .then(async result =>{
         const user = result.user;
-        navigate('/')
-        toast.success("Successfully registered!")
+        return updateProfile(user, {
+            displayName: name,
+            photoURL: photo
+        }).then(()=>{
+            navigate('/')
+            toast.success("Successfully registered!")
+        })
+        
       })
       .catch(error =>{
         const errorMessage = error.message;
