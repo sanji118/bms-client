@@ -21,6 +21,8 @@ import ManageMembers from "../admin/ManageMembers";
 import AgreementRequests from "../admin/AgreementRequests";
 import ManageCoupons from "../admin/ManageCoupons";
 import MakeAnnouncement from "../admin/MakeAnnouncement";
+import DashboardRedirect from "../components/DashboardRedirect";
+import DashboardLayout from "../layouts/DashboardLayout";
 
 export const router = createBrowserRouter([
     {
@@ -50,7 +52,12 @@ export const router = createBrowserRouter([
             },
             {
                 path: 'dashboard',
+                element: <DashboardLayout/>,
                 children: [
+                    {
+                        index: true,
+                        element: <DashboardRedirect/>
+                    },
                     {
                         path: 'user',
                         element: (

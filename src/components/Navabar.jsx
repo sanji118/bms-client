@@ -17,6 +17,7 @@ const Navbar = () => {
   ];
 
   
+  
   const authenticatedNavigation = [
     { name: 'Dashboard', path: '/dashboard' },
     { name: 'Logout', action: signOutUser },
