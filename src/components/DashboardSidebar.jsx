@@ -86,7 +86,7 @@ const DashboardSidebar = () => {
             className={({ isActive }) =>
               `flex items-center px-3 py-2 text-sm rounded-md transition-colors ${
                 isActive
-                  ? "bg-blue-100 text-blue-700"
+                  ? "bg-blue-100 text-yellow-600"
                   : "text-gray-700 hover:bg-gray-100"
               }`
             }
@@ -103,7 +103,7 @@ const DashboardSidebar = () => {
               className={({ isActive }) =>
                 `flex items-center px-3 py-2 text-sm rounded-md transition-colors ${
                   isActive
-                    ? "bg-blue-100 text-blue-700"
+                    ? "bg-blue-100 text-yellow-600"
                     : "text-gray-700 hover:bg-gray-100"
                 }`
               }

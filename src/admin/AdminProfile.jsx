@@ -17,7 +17,7 @@ const AdminProfile = () => {
           <div>
             <h3 className="text-xl font-semibold">{user?.displayName}</h3>
             <p className="text-gray-600">{user?.email}</p>
-            <p className="text-sm text-blue-500 mt-1">Admin</p>
+            <p className="text-sm text-yellow-500 mt-1">Admin</p>
           </div>
         </div>
         

@@ -97,7 +97,7 @@ const ManageCoupons = () => {
         <h2 className="text-2xl font-bold">Manage Coupons</h2>
         <button
           onClick={() => setShowModal(true)}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+          className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
         >
           Add Coupon
         </button>
@@ -147,7 +147,7 @@ const ManageCoupons = () => {
 
       {/* Add Coupon Modal */}
       {showModal && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+        <div className="fixed inset-0 backdrop-blur-lg flex items-center justify-center p-4 z-50">
           <div className="bg-white rounded-lg shadow-lg p-6 w-full max-w-md">
             <h3 className="text-xl font-bold mb-4">Add New Coupon</h3>
             <form onSubmit={handleAddCoupon}>
@@ -195,7 +195,7 @@ const ManageCoupons = () => {
                 </button>
                 <button
                   type="submit"
-                  className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600"
+                  className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600"
                 >
                   Add Coupon
                 </button>
