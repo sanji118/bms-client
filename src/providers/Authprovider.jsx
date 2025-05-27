@@ -7,10 +7,13 @@ export const AuthContext = createContext(null);
 
 const googleProvider = new GoogleAuthProvider();
 
+
 const AuthProvider = ({children}) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] =useState(true);
 
+
+  
   const createUser = (email, password) =>{
     setLoading(true);
     return(
@@ -37,8 +40,8 @@ const AuthProvider = ({children}) => {
     const unsubscribe = onAuthStateChanged(auth, async(currentUser) =>{
       if(currentUser){
         const res = await axios.get(`http://localhost:5000/users/${currentUser.email}`);
-        const data = await res.json();
-        currentUser.role = data?.role || 'user';
+        const UserData = await res.data;
+        currentUser.role = UserData?.role || 'user';
       }
       setUser(currentUser);
       setLoading(false);
