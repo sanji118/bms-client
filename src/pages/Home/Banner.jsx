@@ -66,7 +66,7 @@ const Banner = () => {
   };
 
   return (
-    <div className="relative w-full h-[70vh] overflow-hidden rounded-xl shadow-2xl">
+    <div className="relative w-full h-[60vh] overflow-hidden rounded-xl shadow-2xl">
       <AnimatePresence custom={direction} initial={false}>
         <motion.div
           key={currentIndex}
@@ -91,7 +91,7 @@ const Banner = () => {
               initial={{ y: 50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.3, duration: 0.5 }}
-              className="text-4xl md:text-6xl font-bold text-white mb-4"
+              className="text-4xl md:text-6xl font-bold text-yellow-400 mb-4"
             >
               {bannerImages[currentIndex].title}
             </motion.h1>
@@ -107,7 +107,7 @@ const Banner = () => {
               initial={{ y: 50, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ delay: 0.7, duration: 0.5 }}
-              className="mt-8 px-8 py-3 bg-white text-indigo-600 font-semibold rounded-full hover:bg-indigo-100 transition duration-300 shadow-lg"
+              className="mt-8 px-8 py-3 bg-white text-yellow-600 font-semibold rounded-full hover:bg-yellow-100 transition duration-300 shadow-lg"
             >
               Explore Apartments
             </motion.button>
@@ -136,7 +136,7 @@ const Banner = () => {
         className="absolute left-4 top-1/2 -translate-y-1/2 bg-white bg-opacity-30 hover:bg-opacity-50 p-2 rounded-full transition"
         aria-label="Previous slide"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
         </svg>
       </button>
@@ -148,7 +148,7 @@ const Banner = () => {
         className="absolute right-4 top-1/2 -translate-y-1/2 bg-white bg-opacity-30 hover:bg-opacity-50 p-2 rounded-full transition"
         aria-label="Next slide"
       >
-        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <svg xmlns="http://www.w3.org/2000/svg" className="h-8 w-8 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
         </svg>
       </button>

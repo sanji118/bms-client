@@ -6,236 +6,198 @@ import Logo from './Logo';
 import WebsiteName from './WebsiteName';
 
 const Navbar = () => {
-    const {user, signOutUser} = useAuth()
-  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
-  const navigate = useNavigate();
+    const { user, signOutUser } = useAuth();
+    const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+    const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+    const navigate = useNavigate();
 
-  
-  const publicNavigation = [
-    { name: 'Home', path: '/', icon: <FaHome className="mr-1" /> },
-    { name: 'Apartments', path: '/apartments', icon: <FaBuilding className="mr-1" /> },
-  ];
+    const publicNavigation = [
+        { name: 'Home', path: '/', icon: <FaHome className="mr-1" /> },
+        { name: 'Apartments', path: '/apartments', icon: <FaBuilding className="mr-1" /> },
+    ];
 
-  
-  
-  const authenticatedNavigation = [
-    { name: 'Dashboard', path: '/dashboard' },
-    { name: 'Logout', action: signOutUser },
-  ];
+    const authenticatedNavigation = [
+        { name: 'Dashboard', path: '/dashboard' },
+        { name: 'Logout', action: signOutUser },
+    ];
 
-  const toggleDropdown = () => {
-    setIsDropdownOpen(!isDropdownOpen);
-  };
+    const toggleDropdown = () => {
+        setIsDropdownOpen(!isDropdownOpen);
+    };
 
-  return (
-    <nav className="bg-white shadow-lg">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16">
-          {/* Left side - Logo and main nav */}
-          <div className="flex items-center">
-            <Link to="/" className="flex-shrink-0 flex items-center">
-              <Logo></Logo>
-              <WebsiteName/>
-            </Link>
-            <div className="hidden sm:ml-6 sm:flex sm:space-x-8">
-              {publicNavigation.map((item) => (
-                <Link
-                  key={item.name}
-                  to={item.path}
-                  className="border-yellow-500 text-gray-900 inline-flex items-center px-1 pt-1 border-b-2 text-sm font-medium"
-                >
-                  {item.icon}
-                  {item.name}
-                </Link>
-              ))}
-            </div>
-          </div>
+    const toggleMobileMenu = () => {
+        setIsMobileMenuOpen(!isMobileMenuOpen);
+    };
 
-          {/* Right side - Auth section */}
-          <div className="hidden sm:ml-6 sm:flex sm:items-center">
-            {user ? (
-              <div className="ml-3 relative">
-                <div>
-                  <button
-                    onClick={toggleDropdown}
-                    className="bg-white rounded-full flex text-sm focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-500"
-                    id="user-menu"
-                    aria-haspopup="true"
-                  >
-                    <span className="sr-only">Open user menu</span>
-                    <img
-                      className="h-8 w-8 rounded-full"
-                      src={user.photoURL || 'https://via.placeholder.com/150'}
-                      alt={user.displayName || 'User'}
-                    />
-                  </button>
-                </div>
+    const closeAllMenus = () => {
+        setIsDropdownOpen(false);
+        setIsMobileMenuOpen(false);
+    };
 
-                {isDropdownOpen && (
-                  <div
-                    className="origin-top-right absolute right-0 mt-2 w-48 rounded-md shadow-lg py-1 bg-white ring-1 ring-black ring-opacity-5 z-50"
-                    role="menu"
-                    aria-orientation="vertical"
-                    aria-labelledby="user-menu"
-                  >
-                    <div className="px-4 py-2 border-b border-gray-200">
-                      <p className="text-sm font-medium text-gray-700">
-                        {user.displayName || 'User'}
-                      </p>
-                    </div>
-                    {authenticatedNavigation.map((item) => (
-                      <div key={item.name || item.path}>
-                        {item.path ? (
-                          <Link
-                            to={item.path}
-                            className="block px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                            role="menuitem"
-                            onClick={() => setIsDropdownOpen(false)}
-                          >
-                            {item.name}
-                          </Link>
+    return (
+        <div className="md:fixed z-10 navbar bg-base-100 shadow-lg">
+            <div className="navbar-start">
+                {/* Mobile menu button */}
+                <div className="dropdown sm:hidden">
+                    <button 
+                    onClick={toggleMobileMenu}
+                    className="btn btn-ghost btn-circle"
+                    aria-label="Toggle menu"
+                    >
+                        {isMobileMenuOpen ? (
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M6 18L18 6M6 6l12 12" />
+                            </svg>
                         ) : (
-                          <button
-                            onClick={item.action}
-                            className="block w-full text-left px-4 py-2 text-sm text-gray-700 hover:bg-gray-100"
-                            role="menuitem"
-                          >
-                            {item.name}
-                          </button>
+                            <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 6h16M4 12h16M4 18h16" />
+                            </svg>
                         )}
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </div>
-            ) : (
-              <Link
-                to="/login"
-                className="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-yellow-500 hover:bg-yellow-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-yellow-400"
-              >
-                <FaSignInAlt className="mr-2" />
-                Login
-              </Link>
-            )}
-          </div>
-
-          {/* Mobile menu button */}
-          <div className="-mr-2 flex items-center sm:hidden">
-            <button
-              type="button"
-              className="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-gray-500 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-yellow-500"
-              aria-controls="mobile-menu"
-              aria-expanded="false"
-            >
-              <span className="sr-only">Open main menu</span>
-              {/* Hamburger icon */}
-              <svg
-                className="block h-6 w-6"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M4 6h16M4 12h16M4 18h16"
-                />
-              </svg>
-              {/* Close icon */}
-              <svg
-                className="hidden h-6 w-6"
-                xmlns="http://www.w3.org/2000/svg"
-                fill="none"
-                viewBox="0 0 24 24"
-                stroke="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  strokeLinecap="round"
-                  strokeLinejoin="round"
-                  strokeWidth="2"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      {/* Mobile menu */}
-      <div className="sm:hidden" id="mobile-menu">
-        <div className="pt-2 pb-3 space-y-1">
-          {publicNavigation.map((item) => (
-            <Link
-              key={item.name}
-              to={item.path}
-              className="border-yellow-500 text-yellow-700 block pl-3 pr-4 py-2 border-l-4 text-base font-medium"
-            >
-              {item.icon}
-              {item.name}
-            </Link>
-          ))}
-          {user ? (
-            <>
-              <div className="pt-4 pb-3 border-t border-gray-200">
-                <div className="flex items-center px-4">
-                  <div className="flex-shrink-0">
-                    <img
-                      className="h-10 w-10 rounded-full"
-                      src={user.photoURL || 'https://via.placeholder.com/150'}
-                      alt={user.displayName || 'User'}
-                    />
-                  </div>
-                  <div className="ml-3">
-                    <div className="text-base font-medium text-gray-800">
-                      {user.displayName || 'User'}
-                    </div>
-                    <div className="text-sm font-medium text-gray-500">
-                      {user.email}
-                    </div>
-                  </div>
+                    </button>
                 </div>
-                <div className="mt-3 space-y-1">
-                  {authenticatedNavigation.map((item) => (
-                    <div key={item.name || item.path}>
-                      {item.path ? (
-                        <Link
-                          to={item.path}
-                          className="block px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
-                        >
-                          {item.name}
-                        </Link>
-                      ) : (
-                        <button
-                          onClick={item.action}
-                          className="block w-full text-left px-4 py-2 text-base font-medium text-gray-500 hover:text-gray-800 hover:bg-gray-100"
-                        >
-                          {item.name}
-                        </button>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </>
-          ) : (
-            <div className="px-4 py-2">
-              <Link
-                to="/login"
-                className="w-full flex items-center justify-center px-4 py-2 border border-transparent rounded-md shadow-sm text-base font-medium text-white bg-yellow-500 hover:bg-yellow-600"
-              >
-                <FaSignInAlt className="mr-2" />
-                Login
-              </Link>
+
+                {/* Logo and website name */}
+                <Link to="/" className=" normal-case text-xl flex items-center gap-2" onClick={closeAllMenus}>
+                    <Logo />
+                    <WebsiteName />
+                </Link>
             </div>
-          )}
+
+            {/* Desktop navigation */}
+            <div className="navbar-center hidden sm:flex">
+                <ul className="menu menu-horizontal px-1">
+                    {publicNavigation.map((item) => (
+                        <li key={item.name}>
+                            <Link 
+                                to={item.path} 
+                                className="flex items-center border-b-2 border-yellow-500 rounded-b-none mr-5"
+                                onClick={closeAllMenus}
+                            >
+                                {item.icon}
+                                {item.name}
+                            </Link>
+                        </li>
+                    ))}
+                </ul>
+            </div>
+
+            {/* Desktop auth section */}
+            <div className="navbar-end">
+                {user ? (
+                    <div className="dropdown dropdown-end">
+                        <button 
+                            onClick={toggleDropdown}
+                            className="btn btn-ghost btn-circle avatar"
+                            aria-label="User menu"
+                        >
+                            <div className="w-10 rounded-full">
+                                <img 
+                                    src={user.photoURL || 'https://via.placeholder.com/150'} 
+                                    alt={user.displayName || 'User'} 
+                                />
+                            </div>
+                        </button>
+                        
+                        {isDropdownOpen && (
+                            <ul className="mt-3 p-2 shadow menu menu-compact dropdown-content bg-base-100 rounded-box w-52">
+                                <li className="menu-title">
+                                    <span>{user.displayName || 'User'}</span>
+                                </li>
+                                {authenticatedNavigation.map((item) => (
+                                    <li key={item.name || item.path}>
+                                        {item.path ? (
+                                            <Link 
+                                                to={item.path} 
+                                                onClick={closeAllMenus}
+                                            >
+                                                {item.name}
+                                            </Link>
+                                        ) : (
+                                            <button onClick={() => {
+                                                item.action();
+                                                closeAllMenus();
+                                            }}>
+                                                {item.name}
+                                            </button>
+                                        )}
+                                    </li>
+                                ))}
+                            </ul>
+                        )}
+                    </div>
+                ) : (
+                    <Link 
+                        to="/login" 
+                        className="btn btn-primary"
+                        onClick={closeAllMenus}
+                    >
+                        <FaSignInAlt className="mr-2" />
+                        Login
+                    </Link>
+                )}
+            </div>
+
+            {/* Mobile menu dropdown */}
+            {isMobileMenuOpen && (
+                <div className="sm:hidden absolute top-20 left-0 right-0 bg-base-100 shadow-lg z-50">
+                    <ul className="menu p-4">
+                        {publicNavigation.map((item) => (
+                            <li key={item.name}>
+                                <Link 
+                                    to={item.path} 
+                                    className="flex items-center"
+                                    onClick={closeAllMenus}
+                                >
+                                    {item.icon}
+                                    {item.name}
+                                </Link>
+                            </li>
+                        ))}
+                        
+                        {user && (
+                            <>
+                                <li className="menu-title mt-4">
+                                    <span>Account</span>
+                                </li>
+                                {authenticatedNavigation.map((item) => (
+                                    <li key={item.name || item.path}>
+                                        {item.path ? (
+                                            <Link 
+                                                to={item.path} 
+                                                onClick={closeAllMenus}
+                                            >
+                                                {item.name}
+                                            </Link>
+                                        ) : (
+                                            <button onClick={() => {
+                                                item.action();
+                                                closeAllMenus();
+                                            }}>
+                                                {item.name}
+                                            </button>
+                                        )}
+                                    </li>
+                                ))}
+                            </>
+                        )}
+                    </ul>
+                    
+                    {!user && (
+                        <div className="p-4">
+                            <Link 
+                                to="/login" 
+                                className="btn btn-primary w-full"
+                                onClick={closeAllMenus}
+                            >
+                                <FaSignInAlt className="mr-2" />
+                                Login
+                            </Link>
+                        </div>
+                    )}
+                </div>
+            )}
         </div>
-      </div>
-    </nav>
-  );
+    );
 };
 
 export default Navbar;
