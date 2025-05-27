@@ -5,3 +5,38 @@
 .leaflet-container {
   z-index: 0 !important;
 }
+
+/* Smooth transitions for sidebar links */
+.sidebar-link {
+  transition: all 0.2s ease;
+}
+
+
+.active-link {
+  background-color: #eff6ff;
+  color: #f0ed47;
+  font-weight: 500;
+}
+
+
+.sidebar-link:hover {
+  background-color: #f3f4f6;
+}
+
+
+.sidebar-nav::-webkit-scrollbar {
+  width: 6px;
+}
+
+.sidebar-nav::-webkit-scrollbar-track {
+  background: #f1f1f1;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb {
+  background: #c1c1c1;
+  border-radius: 3px;
+}
+
+.sidebar-nav::-webkit-scrollbar-thumb:hover {
+  background: #a8a8a8;
+}
