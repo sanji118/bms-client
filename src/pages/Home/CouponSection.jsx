@@ -1,6 +1,11 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
+import { CopyToClipboard } from 'react-copy-to-clipboard';
+import Swal from 'sweetalert2';
+import withReactContent from 'sweetalert2-react-content';
+
+const MySwal = withReactContent(Swal);
 
 const COLOR_PALETTE = [
   { 
@@ -23,20 +28,6 @@ const COLOR_PALETTE = [
     bg: 'bg-green-100',
     text: 'text-green-800',
     button: 'bg-green-600 hover:bg-green-700'
-  },
-  { 
-    name: 'blue',
-    border: 'border-blue-300',
-    bg: 'bg-blue-100',
-    text: 'text-blue-800',
-    button: 'bg-blue-600 hover:bg-blue-700'
-  },
-  { 
-    name: 'purple',
-    border: 'border-purple-300',
-    bg: 'bg-purple-100',
-    text: 'text-purple-800',
-    button: 'bg-purple-600 hover:bg-purple-700'
   }
 ];
 
@@ -72,6 +63,18 @@ const CouponSection = () => {
     return COLOR_PALETTE[index % COLOR_PALETTE.length] || COLOR_PALETTE[0];
   };
 
+  const showSuccessAlert = (code) => {
+    MySwal.fire({
+      title: <p className="text-xl font-bold">Copied!</p>,
+      html: <p>Coupon code <strong>{code}</strong> has been copied to your clipboard</p>,
+      icon: 'success',
+      confirmButtonText: 'OK',
+      confirmButtonColor: '#d97706',
+      timer: 2000,
+      timerProgressBar: true,
+    });
+  };
+
   if (loading) {
     return (
       <section className="py-12 px-4 bg-gradient-to-r from-indigo-50 to-blue-50">
@@ -85,7 +88,7 @@ const CouponSection = () => {
 
   if (error) {
     return (
-      <section className="py-12 px-4 bg-gradient-to-r from-yellow-100 to-yellow-50">
+      <section className="py-12 px-4 bg-gradient-to-r from-indigo-50 to-blue-50">
         <div className="max-w-6xl mx-auto text-center">
           <p className="text-red-500">Error loading coupons: {error}</p>
         </div>
@@ -181,16 +184,17 @@ const CouponSection = () => {
                       )}
                     </div>
                     
-                    <button 
-                      className={`mt-auto text-white py-2 px-4 rounded-lg transition w-full ${color.button}`}
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        navigator.clipboard.writeText(coupon.code);
-                        alert(`Coupon code ${coupon.code} copied to clipboard!`);
-                      }}
+                    <CopyToClipboard 
+                      text={coupon.code}
+                      onCopy={() => showSuccessAlert(coupon.code)}
                     >
-                      Copy Code
-                    </button>
+                      <button 
+                        className={`mt-auto text-white py-2 px-4 rounded-lg transition w-full ${color.button}`}
+                        onClick={(e) => e.stopPropagation()}
+                      >
+                        Copy Code
+                      </button>
+                    </CopyToClipboard>
                   </motion.div>
                 </motion.div>
               );
