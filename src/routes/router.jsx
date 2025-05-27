@@ -10,7 +10,6 @@ import PrivateProvider from "../providers/PrivateProvider";
 import UserDashboard from "../pages/Dashboard/UserDashboard";
 import MemberDashboard from "../pages/Dashboard/MemberDashboard";
 import AdminDashboard from "../pages/Dashboard/AdminDashboard";
-import UserProfile from "../User/UserProfile";
 import UserAnnouncements from "../User/UserAnnouncements";
 import MemberProfile from "../member/MemberProfile";
 import MakePayment from "../member/MakePayment";
@@ -23,7 +22,10 @@ import ManageCoupons from "../admin/ManageCoupons";
 import MakeAnnouncement from "../admin/MakeAnnouncement";
 import DashboardRedirect from "../components/DashboardRedirect";
 import DashboardLayout from "../layouts/DashboardLayout";
+import MyProfile from "../User/MyProfile";
 
+
+const apartments = () => fetch('http://localhost:5000/apartments')
 export const router = createBrowserRouter([
     {
         path:'/',
@@ -44,7 +46,8 @@ export const router = createBrowserRouter([
             },
             {
                 path: "apartments",
-                element: <ApartmentsList/>
+                element: <ApartmentsList/>,
+                loader: apartments
             },
             {
                 path: 'apartments/:id',
@@ -66,8 +69,8 @@ export const router = createBrowserRouter([
                         </PrivateProvider>
                         ),
                         children: [
-                        { index: true, element: <UserProfile /> },
-                        { path: 'profile', element: <UserProfile /> },
+                        { index: true, element: <MyProfile /> },
+                        { path: 'profile', element: <MyProfile /> },
                         { path: 'announcements', element: <UserAnnouncements /> },
                         ],
                     },

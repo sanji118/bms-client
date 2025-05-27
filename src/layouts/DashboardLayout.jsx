@@ -49,7 +49,7 @@ const DashboardLayout = () => {
             <div className="h-0 flex-1 flex flex-col pt-5 pb-4 overflow-y-auto">
               <div className="flex items-center flex-shrink-0 px-4">
                 <h1 className="text-xl font-bold text-indigo-600">
-                  {role?.charAt(0).toUpperCase() + role?.slice(1)} Dashboard
+                  {role ? `${role[0].toUpperCase()}${role.slice(1)} Dashboard` : 'User Dashboard'}
                 </h1>
               </div>
               <nav className="mt-5 flex-1 px-2 space-y-1">
