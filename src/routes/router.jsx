@@ -10,6 +10,17 @@ import PrivateProvider from "../providers/PrivateProvider";
 import UserDashboard from "../pages/Dashboard/UserDashboard";
 import MemberDashboard from "../pages/Dashboard/MemberDashboard";
 import AdminDashboard from "../pages/Dashboard/AdminDashboard";
+import UserProfile from "../User/UserProfile";
+import UserAnnouncements from "../User/UserAnnouncements";
+import MemberProfile from "../member/MemberProfile";
+import MakePayment from "../member/MakePayment";
+import PaymentHistory from "../member/PaymentHistory";
+import MemberAnnouncements from "../member/MemberAnnouncements";
+import AdminProfile from "../admin/AdminProfile";
+import ManageMembers from "../admin/ManageMembers";
+import AgreementRequests from "../admin/AgreementRequests";
+import ManageCoupons from "../admin/ManageCoupons";
+import MakeAnnouncement from "../admin/MakeAnnouncement";
 
 export const router = createBrowserRouter([
     {
@@ -38,27 +49,54 @@ export const router = createBrowserRouter([
                 element: <ApartmentDetails/>
             },
             {
-                path: 'dashboard/user',
-                element:(<PrivateProvider role='user'>
-                    <UserDashboard/>
-                </PrivateProvider>)
+                path: 'dashboard',
+                children: [
+                    {
+                        path: 'user',
+                        element: (
+                        <PrivateProvider role="user">
+                            <UserDashboard />
+                        </PrivateProvider>
+                        ),
+                        children: [
+                        { index: true, element: <UserProfile /> },
+                        { path: 'profile', element: <UserProfile /> },
+                        { path: 'announcements', element: <UserAnnouncements /> },
+                        ],
+                    },
+                    {
+                        path: 'member',
+                        element: (
+                        <PrivateProvider role="member">
+                            <MemberDashboard />
+                        </PrivateProvider>
+                        ),
+                        children: [
+                        { index: true, element: <MemberProfile /> },
+                        { path: 'profile', element: <MemberProfile /> },
+                        { path: 'make-payment', element: <MakePayment /> },
+                        { path: 'payment-history', element: <PaymentHistory /> },
+                        { path: 'announcements', element: <MemberAnnouncements /> },
+                        ],
+                    },
+                    {
+                        path: 'admin',
+                        element: (
+                        <PrivateProvider role="admin">
+                            <AdminDashboard />
+                        </PrivateProvider>
+                        ),
+                        children: [
+                            { index: true, element: <AdminProfile /> },
+                            { path: 'profile', element: <AdminProfile /> },
+                            { path: 'manage-members', element: <ManageMembers /> },
+                            { path: 'make-announcement', element: <MakeAnnouncement /> },
+                            { path: 'agreement-requests', element: <AgreementRequests /> },
+                            { path: 'manage-coupons', element: <ManageCoupons /> },
+                        ],
+                    },
+                ],
             },
-            {
-                path: 'dashboard/member',
-                element: (
-                    <PrivateProvider role='member' >
-                        <MemberDashboard/>
-                    </PrivateProvider>
-                )
-            },
-            {
-                path: 'dashboard/admin',
-                element: (
-                    <PrivateProvider role ='admin'>
-                        <AdminDashboard/>
-                    </PrivateProvider>
-                )
-            }
         ]
     }
 ])

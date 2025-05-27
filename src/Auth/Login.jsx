@@ -8,6 +8,8 @@ import {  Home } from 'lucide-react';
 import { useAuth } from '../hook/useAuth';
 import Lottie from 'lottie-react';
 import loginAnimation from '../assets/Animation - 1748331899107.json'
+import Logo from '../components/Logo';
+import WebsiteName from '../components/WebsiteName';
 
 const Login = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -50,13 +52,16 @@ const Login = () => {
 
 
   return (
+    <div className='bg-yellow-50'>
+    <div className='flex justify-center gap-2 items-center py-5'>
+        <Logo></Logo><WebsiteName></WebsiteName>
+    </div>
     <div className='flex items-center w-full px-5 md:px-8'>
-        <div className="flex items-center justify-center min-h-screen px-4 py-20">
-            <div className="md:w-120 rounded-xl shadow-md p-8 space-y-6 border border-yellow-200">
+        <div className="flex items-center justify-center min-h-screen px-4">
+            <div className="md:w-120 rounded-xl shadow-lg p-8 space-y-6 bg-white">
                 <div className="text-center mb-10">
                 <div className="flex justify-center mb-4">
-                    <div className="rounded-full bg-automotive-blue p-3">
-                    <Home className="h-12 w-12 text-yellow-500" />
+                    <div className="rounded-full p-3">
                     </div>
                 </div>
                 <h1 className="text-3xl font-bold text-gray-900">Welcome back</h1>
@@ -119,7 +124,7 @@ const Login = () => {
             loop
             style={{width: '40%'}}
         />
-    </div>
+    </div></div>
   );
 };
 

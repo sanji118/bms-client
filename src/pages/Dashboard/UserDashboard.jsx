@@ -1,9 +1,13 @@
-import React from 'react'
+import { FaUser, FaBullhorn } from 'react-icons/fa';
+import DashboardLayout from '../../layouts/DashboardLayout';
+
+const userNavigation = [
+  { name: 'My Profile', href: 'profile', icon: FaUser },
+  { name: 'Announcements', href: 'announcements', icon: FaBullhorn },
+];
 
 const UserDashboard = () => {
-  return (
-    <div>UserDashboard</div>
-  )
-}
+  return <DashboardLayout role="user" navigation={userNavigation} />;
+};
 
-export default UserDashboard
+export default UserDashboard;

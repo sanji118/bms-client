@@ -1,7 +1,11 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { GoogleAuthProvider, validatePassword } from 'firebase/auth';
+import { GoogleAuthProvider } from 'firebase/auth';
 import { FaGoogle } from 'react-icons/fa';
+import { useAuth } from '../hook/useAuth';
+import { Key } from 'lucide-react';
+import Logo from '../components/Logo';
+import WebsiteName from '../components/WebsiteName';
 
 const Register = () => {
   const {createUser, signInWithGoogle} = useAuth();
@@ -54,12 +58,31 @@ const Register = () => {
     })
   }
   return (
-    <div className="flex items-center justify-center min-h-screen bg-gray-50 px-4 py-20">
-      <div className="w-full max-w-md bg-white rounded-xl shadow-md p-8 space-y-6">
-        <h2 className="text-3xl font-bold text-center text-purple-700">Create your account</h2>
+    <div className="mx-auto min-h-screen bg-yellow-50 px-4 py-20">
+    <div className='flex justify-center gap-2 items-center py-5'>
+        <Logo></Logo><WebsiteName></WebsiteName>
+    </div>
+      <div className="w-full mx-auto max-w-md bg-white rounded-xl shadow-md p-8 space-y-6">
+
+        <h2 className="text-3xl font-bold text-center text-yellow-500 flex gap-3 items-center"><span className='font-bold'><Key /></span>Create your account </h2>
         <p className="text-center text-gray-600">
           Join our community and start sharing your thoughts!
         </p>
+
+        <button onClick={googleSignIn} className="btn bg-white w-full border border-gray-300 text-gray-700 hover:bg-gray-200">
+          <FaGoogle className="text-xl mr-2 text-yellow-300" />
+          Sign up with Google
+        </button>
+
+        <p className="text-center text-sm text-gray-600">
+          Already have account?
+          <Link to="/login" className="text-yellow-500 font-semibold hover:underline">
+            Login
+          </Link>
+        </p>
+        <div className="divider">Or continue with</div>
+
+
 
         <form onSubmit={handleRegister} className="space-y-4">
           <div>
@@ -111,25 +134,12 @@ const Register = () => {
 
           <button
             type="submit"
-            className="btn border-none w-full bg-pink-500 hover:bg-pink-300 text-white"
+            className="btn border-none w-full bg-yellow-500 hover:bg-yellow-300 text-white"
           >
             Sign up
           </button>
         </form>
-
-        <div className="divider">Or continue with</div>
         
-        <button onClick={googleSignIn} className="btn bg-white w-full border border-gray-300 text-gray-700 hover:bg-gray-200">
-          <FaGoogle className="text-xl mr-2" />
-          Sign up with Google
-        </button>
-
-        <p className="text-center text-sm text-gray-600">
-          Already have account?
-          <Link to="/login" className="text-pink-500 font-semibold hover:underline">
-            Login
-          </Link>
-        </p>
       </div>
     </div>
   );
