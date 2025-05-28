@@ -18,44 +18,22 @@ import {
 } from "react-icons/fi";
 import { PulseLoader } from "react-spinners";
 
-const MyProfile = () => {
-  const { user } = useAuth();
-  const [agreements, setAgreements] = useState([]);
-  const [loading, setLoading] = useState(true);
+const UserProfile = () => {
+  const { user, agreement } = useAuth(); // Get agreement from auth context
+  const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      if (user?.email) {
-        try {
-          setLoading(true);
-          const result = await getAgreements(user.email);
-          setAgreements(result);
-        } catch (err) {
-          console.error("Error fetching agreements:", err);
-          setError("Failed to load agreement data. Please try again later.");
-        } finally {
-          setLoading(false);
-        }
-      }
-    };
-
-    fetchData();
-  }, [user]);
+  const hasAgreement = agreement && agreement.status === "accepted";
 
   const getStatusBadge = (status) => {
     const baseClasses = "px-3 py-1 rounded-full text-xs font-semibold";
     switch (status?.toLowerCase()) {
       case "pending":
         return `${baseClasses} bg-yellow-100 text-yellow-800`;
-      case "approved":
+      case "accepted":
         return `${baseClasses} bg-green-100 text-green-800`;
       case "rejected":
         return `${baseClasses} bg-red-100 text-red-800`;
-      case "active":
-        return `${baseClasses} bg-blue-100 text-blue-800`;
-      case "expired":
-        return `${baseClasses} bg-gray-100 text-gray-800`;
       default:
         return `${baseClasses} bg-gray-100 text-gray-800`;
     }
@@ -64,8 +42,6 @@ const MyProfile = () => {
   const handleApplyForApartment = () => {
     console.log("Navigate to apartment application");
   };
-
-  
 
   return (
     <div className="p-6 max-w-5xl mx-auto">
@@ -115,104 +91,106 @@ const MyProfile = () => {
             <FiAlertCircle className="text-2xl" />
             <p>{error}</p>
           </div>
-        ) : agreements.length > 0 ? (
-          agreements.map((agreement) => (
-            <div key={agreement._id} className="p-8 space-y-6">
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                {/* Apartment Details Card */}
-                <div className="bg-yellow-50 p-6 rounded-xl border border-yellow-100">
-                  <div className="flex items-center gap-4 mb-5">
-                    <div className="bg-yellow-100 p-4 rounded-full">
-                      <FiHome className="text-yellow-600 text-2xl" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-800 text-lg">Apartment Details</h4>
-                      <p className="text-sm text-gray-500">Your living space info</p>
-                    </div>
+        ) : hasAgreement ? (
+          <div className="p-8 space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {/* Apartment Details Card */}
+              <div className="bg-yellow-50 p-6 rounded-xl border border-yellow-100">
+                <div className="flex items-center gap-4 mb-5">
+                  <div className="bg-yellow-100 p-4 rounded-full">
+                    <FiHome className="text-yellow-600 text-2xl" />
                   </div>
-                  <div className="space-y-4">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Floor</span>
-                      <span className="font-medium">{agreement.floor || "—"}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Block</span>
-                      <span className="font-medium">{agreement.block || "—"}</span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Room No</span>
-                      <span className="font-medium">{agreement.apartmentNo || "—"}</span>
-                    </div>
+                  <div>
+                    <h4 className="font-semibold text-gray-800 text-lg">Apartment Details</h4>
+                    <p className="text-sm text-gray-500">Your living space info</p>
                   </div>
                 </div>
-
-                {/* Financial Details Card */}
-                <div className="bg-yellow-50 p-6 rounded-xl border border-yellow-100">
-                  <div className="flex items-center gap-4 mb-5">
-                    <div className="bg-yellow-100 p-4 rounded-full">
-                      <FiDollarSign className="text-yellow-600 text-2xl" />
-                    </div>
-                    <div>
-                      <h4 className="font-semibold text-gray-800 text-lg">Financial Details</h4>
-                      <p className="text-sm text-gray-500">Payment breakdown</p>
-                    </div>
+                <div className="space-y-4">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Floor</span>
+                    <span className="font-medium">{agreement.floor || "—"}</span>
                   </div>
-                  <div className="space-y-4">
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Monthly Rent</span>
-                      <span className="font-medium">
-                        {agreement.rent ? formatCurrency(agreement.rent) : "—"}
-                      </span>
-                    </div>
-                    <div className="flex justify-between text-sm">
-                      <span className="text-gray-600">Status</span>
-                      <span className={getStatusBadge(agreement.status)}>
-                        {agreement.status ? agreement.status.charAt(0).toUpperCase() + agreement.status.slice(1) : "—"}
-                      </span>
-                    </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Block</span>
+                    <span className="font-medium">{agreement.block || "—"}</span>
+                  </div>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Room No</span>
+                    <span className="font-medium">{agreement.apartmentNo || "—"}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Agreement Timeline */}
+              {/* Financial Details Card */}
               <div className="bg-yellow-50 p-6 rounded-xl border border-yellow-100">
                 <div className="flex items-center gap-4 mb-5">
                   <div className="bg-yellow-100 p-4 rounded-full">
-                    <FiCalendar className="text-yellow-600 text-2xl" />
+                    <FiDollarSign className="text-yellow-600 text-2xl" />
                   </div>
                   <div>
-                    <h4 className="font-semibold text-gray-800 text-lg">Agreement Timeline</h4>
-                    <p className="text-sm text-gray-500">Your important dates</p>
+                    <h4 className="font-semibold text-gray-800 text-lg">Financial Details</h4>
+                    <p className="text-sm text-gray-500">Payment breakdown</p>
                   </div>
                 </div>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Request Date</span>
-                    <span className="font-medium">{formatDate(agreement.requestDate)}</span>
+                <div className="space-y-4">
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Monthly Rent</span>
+                    <span className="font-medium">
+                      {agreement.rent ? formatCurrency(agreement.rent) : "—"}
+                    </span>
                   </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">Start Date</span>
-                    <span className="font-medium">{formatDate(agreement.startDate)}</span>
-                  </div>
-                  <div className="flex justify-between">
-                    <span className="text-gray-600">End Date</span>
-                    <span className="font-medium">{formatDate(agreement.endDate)}</span>
+                  <div className="flex justify-between text-sm">
+                    <span className="text-gray-600">Status</span>
+                    <span className={getStatusBadge(agreement.status)}>
+                      {agreement.status ? agreement.status.charAt(0).toUpperCase() + agreement.status.slice(1) : "—"}
+                    </span>
                   </div>
                 </div>
               </div>
             </div>
-          ))
+
+            {/* Agreement Timeline */}
+            <div className="bg-yellow-50 p-6 rounded-xl border border-yellow-100">
+              <div className="flex items-center gap-4 mb-5">
+                <div className="bg-yellow-100 p-4 rounded-full">
+                  <FiCalendar className="text-yellow-600 text-2xl" />
+                </div>
+                <div>
+                  <h4 className="font-semibold text-gray-800 text-lg">Agreement Timeline</h4>
+                  <p className="text-sm text-gray-500">Your important dates</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6 text-sm">
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Request Date</span>
+                  <span className="font-medium">{formatDate(agreement.requestDate)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">Start Date</span>
+                  <span className="font-medium">{formatDate(agreement.startDate)}</span>
+                </div>
+                <div className="flex justify-between">
+                  <span className="text-gray-600">End Date</span>
+                  <span className="font-medium">{formatDate(agreement.endDate)}</span>
+                </div>
+              </div>
+            </div>
+          </div>
         ) : (
           <div className="p-10 text-center">
             <div className="bg-yellow-50 rounded-xl p-8 max-w-md mx-auto border border-yellow-100">
               <FiHome className="text-yellow-400 text-5xl mx-auto mb-4" />
               <h4 className="text-xl font-semibold text-gray-800 mb-2">No Agreement Found</h4>
-              <p className="text-gray-500">You don't have any apartment agreements yet.</p>
+              <p className="text-gray-500 mb-4">
+                {user?.role === "member" 
+                  ? "Your agreement details will appear here once approved."
+                  : "You don't have any apartment agreements yet."}
+              </p>
               <button
                 onClick={handleApplyForApartment}
-                className="mt-6 bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-6 rounded-lg transition duration-200"
+                className="mt-4 bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-6 rounded-lg transition duration-200"
               >
-                Apply for an Apartment
+                {user?.role === "member" ? "View Application Status" : "Apply for an Apartment"}
               </button>
             </div>
           </div>
@@ -269,4 +247,4 @@ const MyProfile = () => {
   );
 };
 
-export default MyProfile;
+export default UserProfile;

@@ -19,10 +19,10 @@ import ManageCoupons from "../admin/ManageCoupons";
 import MakeAnnouncement from "../admin/MakeAnnouncement";
 import DashboardRedirect from "../components/DashboardRedirect";
 import DashboardLayout from "../layouts/DashboardLayout";
-import MyProfile from "../User/MyProfile";
 import Unauthorized from "../components/Unauthorized";
 import Coupons from "../coupons/Coupons";
 import AdminAnnouncements from "../admin/AdminAnnouncements";
+import UserProfile from "../User/UserProfile";
 
 
 const apartments = () => fetch('http://localhost:5000/apartments')
@@ -73,8 +73,8 @@ export const router = createBrowserRouter([
                     path: 'user',
                     element: <PrivateProvider role="user"><Outlet/></PrivateProvider>,
                     children: [
-                        { index: true, element: <MyProfile /> },
-                        { path: 'profile', element: <MyProfile /> },
+                        { index: true, element: <UserProfile /> },
+                        { path: 'profile', element: <UserProfile /> },
                         { path: 'announcements', element: <UserAnnouncements /> },
                     ],
                     },

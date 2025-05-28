@@ -1,4 +1,4 @@
-import { createContext, useCallback, useEffect, useState } from "react";
+import { createContext, useEffect, useState } from "react";
 import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
@@ -7,13 +7,10 @@ import {
   signInWithPopup,
   signOut,
   getIdToken,
-  updateProfile
 } from "firebase/auth";
 import auth from "../firebase.init";
-import axios from "axios";
 import tokenStorage from "../utils/tokenStorage";
 import axiosInstance from "../utils/axiosInstance";
-import { getUser } from "../utils";
 
 export const AuthContext = createContext(null);
 
@@ -22,6 +19,7 @@ const googleProvider = new GoogleAuthProvider();
 const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [agreement, setAgreement] = useState(null);
 
   const createUser = (email, password) => {
     setLoading(true);
@@ -40,30 +38,40 @@ const AuthProvider = ({ children }) => {
 
   const signOutUser = () => {
     setLoading(true);
-    tokenStorage.removeToken(); 
+    tokenStorage.removeToken();
+    setAgreement(null);
     return signOut(auth);
   };
 
-  const refreshUserData = useCallback(async (currentUser) => {
+  
+  const fetchUserAgreement = async (userId, email) => {
     try {
-      const fullUser = await getUser(currentUser.email);
-      setUser(prev => ({
-        ...prev,
-        ...currentUser,
-        role: fullUser?.role || 'user',
-      }));
-      return fullUser;
+      const response = await axiosInstance.get(`/agreements`, {
+        params: { userId, email }
+      });
+      
+      return response.data.length > 0 ? response.data[0] : null;
     } catch (error) {
-      console.error("Failed to refresh user data:", error);
+      console.error("Failed to fetch agreement:", error);
       return null;
     }
-  }, []);
+  };
+
+  
+  const checkAgreementStatus = (agreement) => {
+    return agreement && agreement.status === "accepted";
+  };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
         try {
           const idToken = await getIdToken(currentUser);
+          const userAgreement = await fetchUserAgreement(currentUser.uid, currentUser.email);
+          const isAgreementAccepted = checkAgreementStatus(userAgreement);
+          
+          
+          const role = isAgreementAccepted ? "member" : "user";
 
           const { data } = await axiosInstance.post("/jwt", {
             email: currentUser.email,
@@ -71,36 +79,79 @@ const AuthProvider = ({ children }) => {
             name: currentUser.displayName,
             photoURL: currentUser.photoURL,
             token: idToken,
+            role: role,
           });
 
           if (data.token) {
             tokenStorage.setToken(data.token);
-            await refreshUserData(currentUser);
+            setUser({
+              ...currentUser,
+              role: role,
+            });
+            setAgreement(userAgreement);
           }
         } catch (error) {
-          console.error("Failed to get JWT or user info:", error);
+          console.error("Auth state error:", error);
           tokenStorage.removeToken();
-          setUser(currentUser);
+          setUser({
+            ...currentUser,
+            role: "user",
+          });
+          setAgreement(null);
         }
       } else {
         tokenStorage.removeToken();
         setUser(null);
+        setAgreement(null);
       }
       setLoading(false);
     });
 
     return () => unsubscribe();
-  }, [refreshUserData]);
+  }, []);
 
+  
+  const refreshUserData = async () => {
+    if (!auth.currentUser) return;
+    
+    setLoading(true);
+    try {
+      const currentUser = auth.currentUser;
+      const userAgreement = await fetchUserAgreement(currentUser.uid, currentUser.email);
+      const isAgreementAccepted = checkAgreementStatus(userAgreement);
+      const role = isAgreementAccepted ? "member" : "user";
+
+      setUser({
+        ...currentUser,
+        role: role,
+      });
+      setAgreement(userAgreement);
+
+      
+      const idToken = await getIdToken(currentUser);
+      await axiosInstance.post("/jwt", {
+        email: currentUser.email,
+        uid: currentUser.uid,
+        token: idToken,
+        role: role,
+      });
+    } catch (error) {
+      console.error("Failed to refresh user data:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
 
 
   const authInfo = {
     user,
     loading,
+    agreement,
     createUser,
     signInWithGoogle,
     signIn,
     signOutUser,
+    refreshUserData,
   };
 
   return (

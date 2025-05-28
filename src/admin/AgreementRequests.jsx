@@ -2,8 +2,10 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Swal from 'sweetalert2';
 import { FaCheck, FaTimes } from 'react-icons/fa';
 import { formatDate, getAgreementRequests, updateAgreementStatus } from '../utils';
+import { useAuth } from '../hook/useAuth';
 
 const AgreementRequests = () => {
+  const {refreshUserData} = useAuth()
   const queryClient = useQueryClient();
 
   const { data: requests = [], isLoading } = useQuery({
@@ -13,7 +15,11 @@ const AgreementRequests = () => {
 
   const mutation = useMutation({
     mutationFn: ({ id, status }) => updateAgreementStatus(id, status),
-    onSuccess: () => {
+    onSuccess: async(data, variables) => {
+      const {status} = variables;
+      if(status === 'accepted'){
+        await refreshUserData();
+      }
       queryClient.invalidateQueries(['agreementRequests']);
     }
   });

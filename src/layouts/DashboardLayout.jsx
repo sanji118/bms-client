@@ -2,10 +2,19 @@ import { Outlet } from "react-router-dom";
 import { useAuth } from "../hook/useAuth";
 import { FaHome, FaUser, FaBullhorn, FaMoneyBillWave, FaHistory, FaUsers, FaEnvelope, FaGift, FaSignOutAlt, FaUserShield, FaFileContract } from "react-icons/fa";
 import { NavLink, useNavigate } from "react-router-dom";
+import { useEffect, useState } from "react";
 
 const DashboardLayout = () => {
-  const { user, logout } = useAuth();
+  const { user, logout, refreshUserData } = useAuth(); // Make sure refreshUserData is available
   const navigate = useNavigate();
+  const [loading, setLoading] = useState(true);
+
+  // Add this useEffect to handle role changes
+  useEffect(() => {
+    if (user) {
+      setLoading(false);
+    }
+  }, [user]);
 
   const userLinks = [
     { path: "user/profile", name: "My Profile", icon: <FaUser className="text-lg" /> },
@@ -29,6 +38,7 @@ const DashboardLayout = () => {
   ];
 
   const getLinks = () => {
+    if (!user) return [];
     if (user?.role === "admin") return adminLinks;
     if (user?.role === "member") return memberLinks;
     return userLinks;
@@ -38,6 +48,14 @@ const DashboardLayout = () => {
     logout();
     navigate("/");
   };
+
+  if (loading) {
+    return (
+      <div className="flex justify-center items-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500"></div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex min-h-screen bg-gray-100">
