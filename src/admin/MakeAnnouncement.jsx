@@ -1,6 +1,6 @@
 import { useState } from "react";
-import axios from "axios";
 import Swal from "sweetalert2";
+import { createAnnouncement } from "../utils"; 
 
 const MakeAnnouncement = () => {
   const [title, setTitle] = useState("");
@@ -9,13 +9,20 @@ const MakeAnnouncement = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    
+    if (!title.trim() || !description.trim()) {
+      Swal.fire(
+        'Validation Error!',
+        'Please fill in all fields.',
+        'warning'
+      );
+      return;
+    }
+
     setLoading(true);
 
     try {
-      await axios.post('http://localhost:5000/announcements', {
-        title,
-        description
-      });
+      await createAnnouncement({ title, description });
       
       Swal.fire(
         'Success!',
@@ -25,9 +32,10 @@ const MakeAnnouncement = () => {
       setTitle("");
       setDescription("");
     } catch (error) {
+      console.error('Failed to create announcement:', error);
       Swal.fire(
         'Error!',
-        'Failed to publish announcement.',
+        error.response?.data?.message || 'Failed to publish announcement.',
         'error'
       );
     } finally {
@@ -48,6 +56,8 @@ const MakeAnnouncement = () => {
               value={title}
               onChange={(e) => setTitle(e.target.value)}
               required
+              maxLength={100}
+              placeholder="Enter announcement title (max 100 characters)"
             />
           </div>
           <div className="mb-4">
@@ -57,12 +67,17 @@ const MakeAnnouncement = () => {
               value={description}
               onChange={(e) => setDescription(e.target.value)}
               required
+              maxLength={500}
+              placeholder="Enter announcement details (max 500 characters)"
             />
+            <p className="text-sm text-gray-500 mt-1">
+              {description.length}/500 characters
+            </p>
           </div>
           <button
             type="submit"
-            className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 disabled:bg-yellow-300"
-            disabled={loading}
+            className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 disabled:bg-yellow-300 transition-colors"
+            disabled={loading || !title.trim() || !description.trim()}
           >
             {loading ? 'Publishing...' : 'Publish Announcement'}
           </button>
