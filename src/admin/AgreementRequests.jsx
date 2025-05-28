@@ -1,4 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import Swal from 'sweetalert2';
+import { FaCheck, FaTimes } from 'react-icons/fa';
 import { formatDate, getAgreementRequests, updateAgreementStatus } from '../utils';
 
 const AgreementRequests = () => {
@@ -16,55 +18,77 @@ const AgreementRequests = () => {
     }
   });
 
-  const handleStatusUpdate = (id, status) => {
-    mutation.mutate({ id, status });
+  const handleStatusUpdate = async (id, status) => {
+    const result = await Swal.fire({
+      title: `Are you sure you want to ${status} this request?`,
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonText: `Yes, ${status}`,
+      cancelButtonText: 'Cancel',
+      confirmButtonColor: status === 'accepted' ? '#16a34a' : '#dc2626',
+    });
+
+    if (result.isConfirmed) {
+      mutation.mutate({ id, status }, {
+        onSuccess: () => {
+          Swal.fire({
+            title: `Request ${status === 'accepted' ? 'Accepted' : 'Rejected'}`,
+            icon: 'success',
+            timer: 1500,
+            showConfirmButton: false,
+          });
+        }
+      });
+    }
   };
 
-  if (isLoading) return <div>Loading agreements...</div>;
+  if (isLoading) return <div className="text-center py-10 text-lg">Loading agreement requests...</div>;
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-6">Agreement Requests</h2>
-      
+    <div className="bg-white p-8 rounded-xl shadow-lg">
+      <h2 className="text-3xl font-bold text-gray-800 mb-6">Agreement Requests</h2>
+
       {requests.length === 0 ? (
-        <p>No pending requests.</p>
+        <p className="text-center text-gray-600">No pending requests.</p>
       ) : (
-        <div className="overflow-x-auto">
-          <table className="min-w-full bg-white">
-            <thead>
-              <tr className="bg-gray-100">
-                <th className="py-2 px-4 border">User</th>
-                <th className="py-2 px-4 border">Email</th>
-                <th className="py-2 px-4 border">Floor</th>
-                <th className="py-2 px-4 border">Block</th>
-                <th className="py-2 px-4 border">Room</th>
-                <th className="py-2 px-4 border">Rent</th>
-                <th className="py-2 px-4 border">Request Date</th>
-                <th className="py-2 px-4 border">Actions</th>
+        <div className="overflow-x-auto rounded-md border">
+          <table className="min-w-full table-auto border-collapse">
+            <thead className="bg-green-100 text-gray-700">
+              <tr>
+                <th className="py-3 px-4 border">User</th>
+                <th className="py-3 px-4 border">Email</th>
+                <th className="py-3 px-4 border">Floor</th>
+                <th className="py-3 px-4 border">Block</th>
+                <th className="py-3 px-4 border">Room</th>
+                <th className="py-3 px-4 border">Rent</th>
+                <th className="py-3 px-4 border">Request Date</th>
+                <th className="py-3 px-4 border">Actions</th>
               </tr>
             </thead>
-            <tbody>
+            <tbody className="text-center text-gray-800">
               {requests.map((request) => (
-                <tr key={request._id} className="hover:bg-gray-50">
-                  <td className="py-2 px-4 border">{request.userName}</td>
-                  <td className="py-2 px-4 border">{request.userEmail}</td>
-                  <td className="py-2 px-4 border text-center">{request.floor}</td>
-                  <td className="py-2 px-4 border text-center">{request.block}</td>
-                  <td className="py-2 px-4 border text-center">{request.roomNumber}</td>
-                  <td className="py-2 px-4 border text-center">${request.rent}</td>
-                  <td className="py-2 px-4 border text-center">{formatDate(request.createdAt)}</td>
-                  <td className="py-2 px-4 border text-center space-x-2">
+                <tr key={request._id} className="hover:bg-gray-50 transition-all">
+                  <td className="py-3 px-4 border text-amber-700">{request.userName}</td>
+                  <td className="py-3 px-4 border">{request.userEmail}</td>
+                  <td className="py-3 px-4 border">{request.floor}</td>
+                  <td className="py-3 px-4 border">{request.block}</td>
+                  <td className="py-3 px-4 border">{request.roomNumber}</td>
+                  <td className="py-3 px-4 border">${request.rent}</td>
+                  <td className="py-3 px-4 border">{formatDate(request.createdAt)}</td>
+                  <td className="py-3 px-4 border space-x-2">
                     <button
                       onClick={() => handleStatusUpdate(request._id, 'accepted')}
-                      className="bg-green-500 text-white px-3 py-1 rounded hover:bg-green-600"
+                      className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded flex items-center gap-1 mx-auto"
+                      disabled={mutation.isLoading}
                     >
-                      Accept
+                      <FaCheck /> Accept
                     </button>
                     <button
                       onClick={() => handleStatusUpdate(request._id, 'rejected')}
-                      className="bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600"
+                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded flex items-center gap-1 mx-auto"
+                      disabled={mutation.isLoading}
                     >
-                      Reject
+                      <FaTimes /> Reject
                     </button>
                   </td>
                 </tr>
