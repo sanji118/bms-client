@@ -149,6 +149,16 @@ export const createAnnouncement = async (announcementData) => {
   }
 };
 
+export const updateAnnouncement = async(id, payload)=>{
+    const response = await axiosInstance.put(`/announcements/${id}`, payload);
+    return response.data;
+}
+
+export const deleteAnnouncement = async (id) => {
+  const response = await axiosInstance.delete(`/announcements/${id}`);
+  return response.data
+};
+
 // Coupon related functions
 export const getCoupons = async () => {
   try {
