@@ -190,6 +190,27 @@ export const updateCouponStatus = async (id, isActive) => {
   }
 };
 
+export const updateCoupon = async (id, updatedData) => {
+  try {
+    const response = await axiosInstance.patch(`/coupons/${id}`, updatedData);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to update coupon:", error);
+    throw error;
+  }
+};
+
+export const deleteCoupon = async (id) => {
+  try {
+    const response = await axiosInstance.delete(`/coupons/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to delete coupon:", error);
+    throw error;
+  }
+};
+
+
 // Admin specific functions
 export const getAdminStats = async () => {
   try {
