@@ -1,36 +1,24 @@
 import React, { useState, useEffect } from 'react';
-import {
-  getCoupons,
-  createCoupon,
-  updateCouponStatus,
-  deleteCoupon
-} from '../utils';
-import {
-  Table,
-  Button,
-  Modal,
-  Form,
-  Input,
-  InputNumber,
-  message,
-  Switch,
-  Space,
-  Popconfirm,
-  DatePicker,
-  Select,
-  Tag
-} from 'antd';
-import { PlusOutlined } from '@ant-design/icons';
-import dayjs from 'dayjs';
-
-const { RangePicker } = DatePicker;
-const { Option } = Select;
+import { getCoupons, createCoupon, updateCouponStatus, deleteCoupon } from '../utils';
+import { FiPlus, FiTrash2, FiEdit, FiCheck, FiX } from 'react-icons/fi';
+import { FaPercentage, FaDollarSign } from 'react-icons/fa';
+import Swal from 'sweetalert2';
+import DatePicker from 'react-datepicker';
+import 'react-datepicker/dist/react-datepicker.css';
 
 const ManageCoupons = () => {
   const [coupons, setCoupons] = useState([]);
   const [loading, setLoading] = useState(false);
-  const [isModalVisible, setIsModalVisible] = useState(false);
-  const [form] = Form.useForm();
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [formData, setFormData] = useState({
+    code: '',
+    type: 'percentage',
+    discount: 10,
+    validity: [new Date(), new Date(new Date().setMonth(new Date().getMonth() + 1))],
+    minRent: 0,
+    applicableFor: [],
+    description: ''
+  });
 
   useEffect(() => {
     fetchCoupons();
@@ -42,36 +30,34 @@ const ManageCoupons = () => {
       const data = await getCoupons();
       setCoupons(data);
     } catch (error) {
-      message.error('Failed to fetch coupons');
+      Swal.fire('Error', 'Failed to fetch coupons', 'error');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleAddCoupon = () => {
-    form.resetFields();
-    setIsModalVisible(true);
+  const handleInputChange = (e) => {
+    const { name, value } = e.target;
+    setFormData(prev => ({ ...prev, [name]: value }));
   };
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     try {
-      const values = await form.validateFields();
       const couponData = {
-        ...values,
-        validFrom: values.validity[0].format('YYYY-MM-DD'),
-        validUntil: values.validity[1].format('YYYY-MM-DD'),
+        ...formData,
+        validFrom: formData.validity[0].toISOString().split('T')[0],
+        validUntil: formData.validity[1].toISOString().split('T')[0],
         status: 'active'
       };
-      delete couponData.validity;
       
       setLoading(true);
       await createCoupon(couponData);
-      message.success('Coupon created successfully');
-      setIsModalVisible(false);
+      Swal.fire('Success', 'Coupon created successfully', 'success');
+      setIsModalOpen(false);
       fetchCoupons();
     } catch (error) {
-      message.error('Failed to create coupon');
-      console.error(error);
+      Swal.fire('Error', 'Failed to create coupon', 'error');
     } finally {
       setLoading(false);
     }
@@ -80,215 +66,259 @@ const ManageCoupons = () => {
   const handleStatusChange = async (id, status) => {
     try {
       await updateCouponStatus(id, status ? 'active' : 'inactive');
-      message.success('Coupon status updated');
+      Swal.fire('Success', 'Coupon status updated', 'success');
       fetchCoupons();
     } catch (error) {
-      message.error('Failed to update coupon status');
+      Swal.fire('Error', 'Failed to update coupon status', 'error');
     }
   };
 
   const handleDelete = async (id) => {
-    try {
-      await deleteCoupon(id);
-      message.success('Coupon deleted successfully');
-      fetchCoupons();
-    } catch (error) {
-      message.error('Failed to delete coupon');
-    }
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!'
+    }).then(async (result) => {
+      if (result.isConfirmed) {
+        try {
+          await deleteCoupon(id);
+          Swal.fire('Deleted!', 'Coupon has been deleted.', 'success');
+          fetchCoupons();
+        } catch (error) {
+          Swal.fire('Error', 'Failed to delete coupon', 'error');
+        }
+      }
+    });
   };
 
-  const columns = [
-    {
-      title: 'Coupon Code',
-      dataIndex: 'code',
-      key: 'code',
-    },
-    {
-      title: 'Discount',
-      dataIndex: 'discount',
-      key: 'discount',
-      render: (discount, record) => (
-        record.type === 'percentage' ? `${discount}%` : `$${discount}`
-      ),
-    },
-    {
-      title: 'Type',
-      dataIndex: 'type',
-      key: 'type',
-      render: (type) => (
-        <Tag color={type === 'percentage' ? 'blue' : 'green'}>
-          {type.toUpperCase()}
-        </Tag>
-      ),
-    },
-    {
-      title: 'Validity',
-      key: 'validity',
-      render: (_, record) => (
-        `${record.validFrom} to ${record.validUntil}`
-      ),
-    },
-    {
-      title: 'Min Rent',
-      dataIndex: 'minRent',
-      key: 'minRent',
-      render: (minRent) => minRent ? `$${minRent}` : 'None',
-    },
-    {
-      title: 'Applicable For',
-      dataIndex: 'applicableFor',
-      key: 'applicableFor',
-      render: (tags) => (
-        <>
-          {tags?.map(tag => (
-            <Tag color="purple" key={tag}>
-              {tag}
-            </Tag>
-          ))}
-        </>
-      ),
-    },
-    {
-      title: 'Status',
-      dataIndex: 'status',
-      key: 'status',
-      render: (status, record) => (
-        <Switch
-          checked={status === 'active'}
-          onChange={(checked) => handleStatusChange(record.id, checked)}
-        />
-      ),
-    },
-    {
-      title: 'Actions',
-      key: 'actions',
-      render: (_, record) => (
-        <Space size="middle">
-          <Popconfirm
-            title="Are you sure to delete this coupon?"
-            onConfirm={() => handleDelete(record.id)}
-            okText="Yes"
-            cancelText="No"
-          >
-            <Button type="link" danger>
-              Delete
-            </Button>
-          </Popconfirm>
-        </Space>
-      ),
-    },
-  ];
-
   return (
-    <div>
-      <div style={{ marginBottom: 16 }}>
-        <Button
-          type="primary"
-          icon={<PlusOutlined />}
-          onClick={handleAddCoupon}
+    <div className="p-6">
+      <div className="flex justify-between items-center mb-6">
+        <h1 className="text-2xl font-bold text-cyan-500">Manage Coupons</h1>
+        <button 
+          onClick={() => setIsModalOpen(true)}
+          className="btn bg-cyan-600"
         >
-          Add Coupon
-        </Button>
+          <FiPlus className="mr-2" /> Add Coupon
+        </button>
       </div>
 
-      <Table
-        columns={columns}
-        dataSource={coupons}
-        rowKey="id"
-        loading={loading}
-      />
+      <div className="overflow-x-auto">
+        <table className="table w-full bg-cyan-50">
+          <thead>
+            <tr>
+              <th>Code</th>
+              <th>Discount</th>
+              <th>Type</th>
+              <th>Validity</th>
+              <th>Min Rent</th>
+              <th>Applicable For</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            {coupons.map(coupon => (
+              <tr key={coupon._id}>
+                <td>{coupon.code}</td>
+                <td>
+                  {coupon.type === 'percentage' ? (
+                    <span className="flex items-center">
+                      <FaPercentage className="mr-1" /> {coupon.discount}%
+                    </span>
+                  ) : (
+                    <span className="flex items-center">
+                      <FaDollarSign className="mr-1" /> {coupon.discount}
+                    </span>
+                  )}
+                </td>
+                <td>
+                  <span className={`badge ${coupon.type === 'percentage' ? 'badge-primary' : 'badge-secondary'}`}>
+                    {coupon.type.toUpperCase()}
+                  </span>
+                </td>
+                <td>{coupon.validFrom} to {coupon.validUntil}</td>
+                <td>{coupon.minRent ? `$${coupon.minRent}` : 'None'}</td>
+                <td>
+                  <div className="flex flex-wrap gap-1">
+                    {coupon.applicableFor?.map(tag => (
+                      <span key={tag}>{tag}</span>
+                    ))}
+                  </div>
+                </td>
+                <td>
+                  <input 
+                    type="checkbox" 
+                    className="toggle toggle-success"
+                    checked={coupon.status === 'active'}
+                    onChange={(e) => handleStatusChange(coupon._id, e.target.checked)}
+                  />
+                </td>
+                <td>
+                  <button 
+                    onClick={() => handleDelete(coupon.id)}
+                    className="btn btn-ghost btn-sm text-error"
+                  >
+                    <FiTrash2 className='text-xl text-red-600' />
+                  </button>
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
 
-      <Modal
-        title="Add New Coupon"
-        visible={isModalVisible}
-        onOk={handleSubmit}
-        onCancel={() => setIsModalVisible(false)}
-        confirmLoading={loading}
-        width={700}
-      >
-        <Form form={form} layout="vertical">
-          <Form.Item
-            name="code"
-            label="Coupon Code"
-            rules={[
-              { required: true, message: 'Please input the coupon code!' },
-              { pattern: /^[A-Z0-9]+$/, message: 'Only uppercase letters and numbers allowed' }
-            ]}
-          >
-            <Input placeholder="e.g., WELCOME10" />
-          </Form.Item>
+      {/* Modal */}
+      {isModalOpen && (
+        <div className="modal modal-open">
+          <div className="modal-box w-11/12 max-w-5xl">
+            <h3 className="font-bold text-lg mb-4">Add New Coupon</h3>
+            <form onSubmit={handleSubmit}>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Coupon Code</span>
+                  </label>
+                  <input
+                    type="text"
+                    name="code"
+                    value={formData.code}
+                    onChange={handleInputChange}
+                    placeholder="WELCOME10"
+                    className="input input-bordered"
+                    pattern="[A-Z0-9]+"
+                    required
+                  />
+                </div>
 
-          <Form.Item
-            name="type"
-            label="Discount Type"
-            initialValue="percentage"
-            rules={[{ required: true }]}
-          >
-            <Select>
-              <Option value="percentage">Percentage</Option>
-              <Option value="fixed">Fixed Amount</Option>
-            </Select>
-          </Form.Item>
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Discount Type</span>
+                  </label>
+                  <select
+                    name="type"
+                    value={formData.type}
+                    onChange={handleInputChange}
+                    className="select select-bordered"
+                  >
+                    <option value="percentage">Percentage</option>
+                    <option value="fixed">Fixed Amount</option>
+                  </select>
+                </div>
 
-          <Form.Item
-            name="discount"
-            label="Discount Value"
-            rules={[
-              { required: true, message: 'Please input the discount value!' },
-              { type: 'number', min: 1, message: 'Discount must be at least 1' }
-            ]}
-          >
-            <InputNumber
-              style={{ width: '100%' }}
-              min={1}
-              formatter={value => 
-                form.getFieldValue('type') === 'percentage' ? `${value}%` : `$${value}`
-              }
-              parser={value => value.replace(/%|\$/g, '')}
-            />
-          </Form.Item>
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Discount Value</span>
+                  </label>
+                  <div className="relative">
+                    {formData.type === 'percentage' ? (
+                      <FaPercentage className="absolute left-3 top-3" />
+                    ) : (
+                      <FaDollarSign className="absolute left-3 top-3" />
+                    )}
+                    <input
+                      type="number"
+                      name="discount"
+                      value={formData.discount}
+                      onChange={handleInputChange}
+                      className="input input-bordered pl-10"
+                      min="1"
+                      required
+                    />
+                  </div>
+                </div>
 
-          <Form.Item
-            name="validity"
-            label="Validity Period"
-            rules={[{ required: true, message: 'Please select validity period!' }]}
-          >
-            <RangePicker style={{ width: '100%' }} />
-          </Form.Item>
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Validity Period</span>
+                  </label>
+                  <DatePicker
+                    selected={formData.validity[0]}
+                    onChange={(dates) => setFormData({...formData, validity: dates})}
+                    startDate={formData.validity[0]}
+                    endDate={formData.validity[1]}
+                    selectsRange
+                    className="input input-bordered w-full"
+                    required
+                  />
+                </div>
 
-          <Form.Item
-            name="minRent"
-            label="Minimum Rent Amount"
-          >
-            <InputNumber
-              style={{ width: '100%' }}
-              min={0}
-              formatter={value => `$${value}`}
-              parser={value => value.replace(/\$/g, '')}
-            />
-          </Form.Item>
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Minimum Rent Amount</span>
+                  </label>
+                  <div className="relative">
+                    <FaDollarSign className="absolute left-3 top-3" />
+                    <input
+                      type="number"
+                      name="minRent"
+                      value={formData.minRent}
+                      onChange={handleInputChange}
+                      className="input input-bordered pl-10"
+                      min="0"
+                    />
+                  </div>
+                </div>
 
-          <Form.Item
-            name="applicableFor"
-            label="Applicable For"
-            rules={[{ required: true, message: 'Please select at least one option!' }]}
-          >
-            <Select mode="tags" placeholder="Select or enter tags">
-              <Option value="new-members">New Members</Option>
-              <Option value="renewals">Renewals</Option>
-              <Option value="special-offers">Special Offers</Option>
-            </Select>
-          </Form.Item>
+                <div className="form-control">
+                  <label className="label">
+                    <span className="label-text">Applicable For</span>
+                  </label>
+                  <select
+                    name="applicableFor"
+                    multiple
+                    value={formData.applicableFor}
+                    onChange={(e) => setFormData({
+                      ...formData,
+                      applicableFor: Array.from(e.target.selectedOptions, option => option.value)
+                    })}
+                    className="select select-bordered h-auto"
+                    required
+                  >
+                    <option value="new-members">New Members</option>
+                    <option value="renewals">Renewals</option>
+                    <option value="special-offers">Special Offers</option>
+                  </select>
+                </div>
+              </div>
 
-          <Form.Item
-            name="description"
-            label="Description"
-            rules={[{ required: true, message: 'Please input the description!' }]}
-          >
-            <Input.TextArea rows={3} />
-          </Form.Item>
-        </Form>
-      </Modal>
+              <div className="form-control mt-4">
+                <label className="label">
+                  <span className="label-text">Description</span>
+                </label>
+                <textarea
+                  name="description"
+                  value={formData.description}
+                  onChange={handleInputChange}
+                  className="textarea textarea-bordered h-24"
+                  required
+                />
+              </div>
+
+              <div className="modal-action">
+                <button
+                  type="button"
+                  onClick={() => setIsModalOpen(false)}
+                  className="btn btn-ghost"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="btn btn-primary"
+                  disabled={loading}
+                >
+                  {loading ? 'Creating...' : 'Create Coupon'}
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 };

@@ -12,6 +12,7 @@ import {
 import auth from "../firebase.init";
 import axios from "axios";
 import tokenStorage from "../utils/tokenStorage";
+import axiosInstance from "../utils/axiosInstance";
 
 export const AuthContext = createContext(null);
 
@@ -38,38 +39,37 @@ const AuthProvider = ({ children }) => {
 
   const signOutUser = () => {
     setLoading(true);
-    tokenStorage.removeToken(); // Remove token on sign out
+    tokenStorage.removeToken(); 
     return signOut(auth);
   };
 
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
-
         try {
           const idToken = await getIdToken(currentUser);
-          const { data } = await axios.post("http://localhost:5000/jwt", {
-           email: currentUser.email,
-           uid: currentUser.uid,
-           name: currentUser.displayName,
-           photoURL: currentUser.photoURL,
-           token: idToken
+
+          const { data } = await axiosInstance.post("/jwt", {
+            email: currentUser.email,
+            uid: currentUser.uid,
+            name: currentUser.displayName,
+            photoURL: currentUser.photoURL,
+            token: idToken,
           });
 
-         if(data.token){
-          tokenStorage.setToken(data.token)
-          setUser({
-            ...currentUser,
-            role: data.role || 'user'
-          })
-         }
+          if (data.token) {
+            tokenStorage.setToken(data.token);
+            setUser({
+              ...currentUser,
+              role: data.role || 'user', 
+            });
+          }
         } catch (error) {
           console.error("Failed to get JWT token:", error);
           tokenStorage.removeToken();
-          setUser(currentUser);
+          setUser(currentUser); 
         }
       } else {
-        // No user signed in
         tokenStorage.removeToken();
         setUser(null);
       }
@@ -78,6 +78,7 @@ const AuthProvider = ({ children }) => {
 
     return () => unsubscribe();
   }, []);
+
 
   const authInfo = {
     user,

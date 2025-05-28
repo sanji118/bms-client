@@ -190,9 +190,9 @@ export const createCoupon = async (couponData) => {
   }
 };
 
-export const updateCouponStatus = async (id, isActive) => {
+export const updateCouponStatus = async (id, status) => {
   try {
-    const response = await axiosInstance.patch(`/coupons/${id}`, { isActive });
+    const response = await axiosInstance.patch(`/coupons/${id}`, { status });
     return response.data;
   } catch (error) {
     console.error("Failed to update coupon status:", error);
