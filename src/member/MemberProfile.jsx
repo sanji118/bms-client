@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../hook/useAuth';
 import { formatDate, formatCurrency, getAgreements, getApartment } from '../utils';
+import { FaBuilding, FaUserCheck, FaCalendarAlt, FaMoneyBillWave, FaLayerGroup } from 'react-icons/fa';
 
 const MemberProfile = () => {
   const { user } = useAuth();
@@ -15,7 +16,6 @@ const MemberProfile = () => {
           const firstAgreement = agreements[0];
           setAgreement(firstAgreement);
 
-          // Fetch apartment details using agreement.apartmentId
           if (firstAgreement.apartmentId) {
             const apt = await getApartment(firstAgreement.apartmentId);
             setApartment(apt);
@@ -32,71 +32,74 @@ const MemberProfile = () => {
   }, [user]);
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
-      <h2 className="text-2xl font-bold mb-6">My Profile</h2>
-      
-      <div className="flex flex-col md:flex-row gap-8">
-        {/* Profile Picture and Info */}
-        <div className="md:w-1/3">
-          <div className="flex flex-col items-center">
-            <img 
-              src={user?.photoURL || '/default-avatar.png'} 
-              alt="Profile" 
-              className="w-32 h-32 rounded-full mb-4 object-cover"
-            />
-            <h3 className="text-xl font-semibold text-center">{user?.displayName || 'No Name'}</h3>
-            <p className="text-gray-600 text-center">{user?.email}</p>
+    <div className="bg-base-100 p-8 border-l border-l-amber-300 shadow-xl max-w-5xl mx-auto ">
+      <h2 className="text-3xl font-bold mb-8 text-center text-cyan-600"> Member Profile</h2>
+
+      <div className="flex flex-col md:flex-row gap-8 items-start">
+        {/* Profile Section */}
+        <div className="w-full md:w-1/3 flex flex-col items-center text-center">
+          <div className="avatar mb-4">
+            <div className="w-32 rounded-full ring ring-primary ring-offset-base-100 ring-offset-2">
+              <img src={user?.photoURL || '/default-avatar.png'} alt="Profile" />
+            </div>
           </div>
+          <h3 className="text-xl font-semibold">{user?.displayName || 'No Name'}</h3>
+          <p className="text-gray-500">{user?.email}</p>
         </div>
-        
-        {/* Agreement and Apartment Info */}
-        <div className="md:w-2/3">
-          <div className="space-y-4">
-            <div>
-              <h4 className="font-medium text-gray-700">Agreement Status</h4>
-              <p className="mt-1">{agreement ? 'Accepted' : 'No agreement'}</p>
-            </div>
 
-            <div>
-              <h4 className="font-medium text-gray-700">Agreement Date</h4>
-              <p className="mt-1">
-                {agreement?.createdAt ? formatDate(agreement.createdAt) : 'None'}
-              </p>
-            </div>
-
-            <div>
-              <h4 className="font-medium text-gray-700">Rented Apartment</h4>
-              <p className="mt-1">
-                {apartment ? `${apartment.block_name}-${apartment.apartment_no}` : 'None'}
-              </p>
-            </div>
-
-            <div>
-              <h4 className="font-medium text-gray-700">Floor</h4>
-              <p className="mt-1">{apartment?.floor_no || 'None'}</p>
-            </div>
-
-            <div>
-              <h4 className="font-medium text-gray-700">Block</h4>
-              <p className="mt-1">{apartment?.block_name || 'None'}</p>
-            </div>
-
-            <div>
-              <h4 className="font-medium text-gray-700">Room No</h4>
-              <p className="mt-1">{apartment?.apartment_no || 'None'}</p>
-            </div>
-
-            <div>
-              <h4 className="font-medium text-gray-700">Monthly Rent</h4>
-              <p className="mt-1">
-                {apartment ? formatCurrency(apartment.rent) : 'None'}
-              </p>
-            </div>
+        {/* Info Section */}
+        <div className="w-full md:w-2/3 space-y-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <InfoCard
+              icon={<FaUserCheck className="text-green-500 text-xl" />}
+              label="Agreement Status"
+              value={agreement ? 'Accepted' : 'No agreement'}
+            />
+            <InfoCard
+              icon={<FaCalendarAlt className="text-blue-500 text-xl" />}
+              label="Agreement Date"
+              value={agreement?.createdAt ? formatDate(agreement.createdAt) : 'None'}
+            />
+            <InfoCard
+              icon={<FaBuilding className="text-indigo-500 text-xl" />}
+              label="Rented Apartment"
+              value={apartment ? `${apartment.block_name}-${apartment.apartment_no}` : 'None'}
+            />
+            <InfoCard
+              icon={<FaLayerGroup className="text-yellow-500 text-xl" />}
+              label="Floor"
+              value={apartment?.floor_no || 'None'}
+            />
+            <InfoCard
+              icon={<FaLayerGroup className="text-purple-500 text-xl" />}
+              label="Block"
+              value={apartment?.block_name || 'None'}
+            />
+            <InfoCard
+              icon={<FaLayerGroup className="text-pink-500 text-xl" />}
+              label="Room No"
+              value={apartment?.apartment_no || 'None'}
+            />
+            <InfoCard
+              icon={<FaMoneyBillWave className="text-emerald-500 text-xl" />}
+              label="Monthly Rent"
+              value={apartment ? formatCurrency(apartment.rent) : 'None'}
+            />
           </div>
         </div>
       </div>
     </div>
   );
 };
+
+const InfoCard = ({ icon, label, value }) => (
+  <div className="bg-base-200 rounded-xl p-4 shadow hover:shadow-lg transition">
+    <div className="flex items-center gap-3 mb-1">
+      <span>{icon}</span>
+      <h4 className="font-medium text-gray-700">{label}</h4>
+    </div>
+    <p className="text-gray-900 font-semibold">{value}</p>
+  </div>
+);
 
 export default MemberProfile;

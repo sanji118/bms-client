@@ -22,6 +22,7 @@ import DashboardLayout from "../layouts/DashboardLayout";
 import MyProfile from "../User/MyProfile";
 import Unauthorized from "../components/Unauthorized";
 import Coupons from "../coupons/Coupons";
+import AdminAnnouncements from "../admin/AdminAnnouncements";
 
 
 const apartments = () => fetch('http://localhost:5000/apartments')
@@ -98,7 +99,7 @@ export const router = createBrowserRouter([
                         { path: 'make-announcement', element: <MakeAnnouncement /> },
                         { path: 'agreement-requests', element: <AgreementRequests /> },
                         { path: 'manage-coupons', element: <ManageCoupons /> },
-                        { path: 'announcements', element: <MemberAnnouncements /> }
+                        { path: 'announcements', element: <AdminAnnouncements /> }
                     ],
                     },
                 ],
