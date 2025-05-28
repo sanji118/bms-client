@@ -20,6 +20,7 @@ import MakeAnnouncement from "../admin/MakeAnnouncement";
 import DashboardRedirect from "../components/DashboardRedirect";
 import DashboardLayout from "../layouts/DashboardLayout";
 import MyProfile from "../User/MyProfile";
+import Unauthorized from "../components/Unauthorized";
 
 
 const apartments = () => fetch('http://localhost:5000/apartments')
@@ -49,6 +50,10 @@ export const router = createBrowserRouter([
             {
                 path: 'apartments/:id',
                 element: <ApartmentDetails/>
+            },
+            {
+                path: 'unauthorized',
+                element: <Unauthorized/>
             },
             {
                 path: 'dashboard',
