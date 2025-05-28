@@ -1,10 +1,9 @@
 import { useLoaderData, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hook/useAuth';
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import { createAgreement, getAgreements ,formatDate} from '../../utils';
 import Swal from 'sweetalert2';
-import tokenStorage from '../../utils/tokenStorage';
-import axiosInstance from '../../utils/axiosInstance';
+import RequestAgreement from '../../member/RequestAgreement';
 
 const ApartmentsList = () => {
   const apartments = useLoaderData();
@@ -15,19 +14,24 @@ const ApartmentsList = () => {
   const [maxRent, setMaxRent] = useState('');
   const [userAgreements, setUserAgreements] = useState([]);
   const [loading, setLoading] = useState(false);
+  const [showAgreementModal, setShowAgreementModal] = useState(false);
+  const [selectedApartment, setSelectedApartment] = useState(null);
+  const [agreementForm, setAgreementForm] = useState({
+    startDate: '',
+    endDate: '',
+    termsAccepted: false,
+    specialRequests: ''
+  });
   const apartmentsPerPage = 6;
-  const token = tokenStorage.getToken();
-  console.log(token)
   const navigate = useNavigate();
 
   // Fetch user's agreements
   useEffect(() => {
     const fetchAgreements = async () => {
-      if (user?.email && token ) {
+      if (user?.email) {
         try {
-          const response = await axiosInstance.get(
-            '/agreements');
-          setUserAgreements(response.data);
+          const agreements = await getAgreements(user.email);
+          setUserAgreements(agreements);
         } catch (error) {
           console.error('Error fetching agreements:', error);
         }
@@ -35,9 +39,9 @@ const ApartmentsList = () => {
     };
 
     fetchAgreements();
-  }, [user, token]);
+  }, [user]);
 
-  const handleAgreement = async (apartment) => {
+  const handleAgreementClick = (apartment) => {
     if (!user) {
       Swal.fire({
         title: 'Login Required',
@@ -52,14 +56,29 @@ const ApartmentsList = () => {
       return;
     }
 
+    setSelectedApartment(apartment);
+    setShowAgreementModal(true);
+  };
+
+  const handleAgreementSubmit = async () => {
+    if (!agreementForm.termsAccepted) {
+      Swal.fire('Error', 'You must accept the terms and conditions', 'error');
+      return;
+    }
+
+    if (!agreementForm.startDate || !agreementForm.endDate) {
+      Swal.fire('Error', 'Please select both start and end dates', 'error');
+      return;
+    }
+
     setLoading(true);
 
     try {
       // Check for existing agreement
       const existingAgreement = userAgreements.find(
-        agreement => agreement.apartmentNo === apartment.apartment_no && 
-                    agreement.block === apartment.block_name &&
-                    agreement.floor === apartment.floor_no
+        agreement => agreement.apartmentNo === selectedApartment.apartment_no && 
+                    agreement.block === selectedApartment.block_name &&
+                    agreement.floor === selectedApartment.floor_no
       );
 
       if (existingAgreement) {
@@ -81,35 +100,30 @@ const ApartmentsList = () => {
       }
 
       // Submit new agreement
-      const response = await axios.post(
-        'http://localhost:5000/agreements',
-        {
-          userName: user.displayName,
-          userEmail: user.email,
-          userId: user.uid,
-          apartmentId: apartment._id,
-          floor: apartment.floor_no,
-          block: apartment.block_name,
-          apartmentNo: apartment.apartment_no,
-          rent: apartment.rent,
-          status: 'pending',
-          requestDate: new Date().toISOString()
-        },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`
-          }
-        }
-      );
+      const agreementData = {
+        userName: user.displayName,
+        userEmail: user.email,
+        userId: user.uid,
+        apartmentId: selectedApartment._id,
+        floor: selectedApartment.floor_no,
+        block: selectedApartment.block_name,
+        apartmentNo: selectedApartment.apartment_no,
+        rent: selectedApartment.rent,
+        status: 'pending',
+        requestDate: new Date().toISOString(),
+        startDate: agreementForm.startDate,
+        endDate: agreementForm.endDate,
+        specialRequests: agreementForm.specialRequests
+      };
 
-      if (response.status === 201) {
+      const response = await createAgreement(agreementData);
+
+      if (response) {
         Swal.fire('Success!', 'Agreement request submitted', 'success');
         // Refresh agreements
-        const agreementsResponse = await axios.get(
-          `http://localhost:5000/agreements?email=${user.email}`,
-          { headers: { Authorization: `Bearer ${token}` } }
-        );
-        setUserAgreements(agreementsResponse.data);
+        const agreements = await getAgreements(user.email);
+        setUserAgreements(agreements);
+        setShowAgreementModal(false);
       }
     } catch (error) {
       console.error('Agreement error:', error);
@@ -157,9 +171,9 @@ const ApartmentsList = () => {
     }
 
     return {
-      text: loading ? 'Processing...' : 'Request Agreement',
+      text: 'Request Agreement',
       className: 'btn btn-outline btn-success',
-      disabled: loading,
+      disabled: false,
       tooltip: 'Click to request agreement'
     };
   };
@@ -218,7 +232,7 @@ const ApartmentsList = () => {
                 </p>
                 <div className="card-actions justify-end">
                   <button
-                    onClick={() => handleAgreement(apt)}
+                    onClick={() => handleAgreementClick(apt)}
                     className={buttonState.className}
                     disabled={buttonState.disabled}
                     title={buttonState.tooltip}
@@ -231,6 +245,18 @@ const ApartmentsList = () => {
           );
         })}
       </div>
+
+      {/* Agreement Request Modal */}
+      {showAgreementModal && selectedApartment && (
+        <RequestAgreement 
+        loading={loading} 
+        handleAgreementSubmit={handleAgreementSubmit}
+        setShowAgreementModal={setShowAgreementModal}
+        setAgreementForm={setAgreementForm}
+        selectedApartment={selectedApartment}
+        agreementForm={agreementForm} 
+        />
+      )}
 
       {/* Pagination */}
       {totalPages > 1 && (

@@ -1,104 +1,89 @@
-import { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '../hook/useAuth';
 
-const RequestAgreement = ({ apartment }) => {
-  const { user } = useAuth();
-  const queryClient = useQueryClient();
-  const [termsAccepted, setTermsAccepted] = useState(false);
+import { formatDate } from '../utils';
 
-  const mutation = useMutation({
-    mutationFn: createAgreement,
-    onSuccess: () => {
-      queryClient.invalidateQueries(['agreements']);
-      alert('Agreement request submitted!');
-    }
-  });
+const RequestAgreement = ({selectedApartment, loading, handleAgreementSubmit, setShowAgreementModal, setAgreementForm, agreementForm,  }) => {
 
-  const handleSubmit = (e) => {
-    e.preventDefault();
-    if (!termsAccepted) {
-      alert('You must accept the terms');
-      return;
-    }
-
-    const agreementData = {
-      userEmail: user.email,
-      userName: user.displayName,
-      apartmentId: apartment._id,
-      floor: apartment.floor_no,
-      block: apartment.block_name,
-      roomNumber: apartment.roomNumber,
-      rent: apartment.rent,
-      status: 'pending'
-    };
-
-    mutation.mutate(agreementData);
-  };
 
   return (
-    <div className="bg-white p-6 rounded-lg shadow-md">
-      <h3 className="text-xl font-semibold mb-4">Request Rental Agreement</h3>
-      <form onSubmit={handleSubmit}>
-        <div className="mb-4">
-          <label className="flex items-center">
-            <input
-              type="checkbox"
-              checked={termsAccepted}
-              onChange={(e) => setTermsAccepted(e.target.checked)}
-              className="mr-2"
-            />
-            <span>I agree to the rental terms and conditions</span>
-          </label>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-          <div>
-            <label className="block text-gray-700 mb-1">Floor</label>
-            <input
-              type="text"
-              value={apartment.floor}
-              readOnly
-              className="w-full p-2 border rounded bg-gray-100"
-            />
-          </div>
-          <div>
-            <label className="block text-gray-700 mb-1">Block</label>
-            <input
-              type="text"
-              value={apartment.block}
-              readOnly
-              className="w-full p-2 border rounded bg-gray-100"
-            />
-          </div>
-          <div>
-            <label className="block text-gray-700 mb-1">Room Number</label>
-            <input
-              type="text"
-              value={apartment.roomNumber}
-              readOnly
-              className="w-full p-2 border rounded bg-gray-100"
-            />
-          </div>
-          <div>
-            <label className="block text-gray-700 mb-1">Monthly Rent</label>
-            <input
-              type="text"
-              value={`$${apartment.rent}`}
-              readOnly
-              className="w-full p-2 border rounded bg-gray-100"
-            />
-          </div>
-        </div>
+    <div className="fixed inset-0 backdrop-blur-sm flex items-center justify-center p-4 z-50">
+        <div className="bg-white rounded-lg shadow-xl w-full max-w-md">
+        <div className="p-6">
+            <h3 className="text-xl font-bold mb-4">Request Agreement for Apartment {selectedApartment.apartment_no}</h3>
+            
+            <div className="mb-4">
+            <label className="block mb-2 font-medium">Apartment Details</label>
+            <div className="bg-gray-50 p-3 rounded">
+                <p>Block: {selectedApartment.block_name}</p>
+                <p>Floor: {selectedApartment.floor_no}</p>
+                <p>Rent: {selectedApartment.rent}৳ per month</p>
+            </div>
+            </div>
 
-        <button
-          type="submit"
-          disabled={mutation.isLoading}
-          className="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 disabled:bg-blue-300"
-        >
-          {mutation.isLoading ? 'Submitting...' : 'Submit Request'}
-        </button>
-      </form>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+                <label className="block mb-2 font-medium">Start Date</label>
+                <input
+                type="date"
+                className="w-full p-2 border rounded"
+                value={agreementForm.startDate}
+                onChange={(e) => setAgreementForm({...agreementForm, startDate: e.target.value})}
+                min={formatDate(new Date(), 'yyyy-MM-dd')}
+                required
+                />
+            </div>
+            <div>
+                <label className="block mb-2 font-medium">End Date</label>
+                <input
+                type="date"
+                className="w-full p-2 border rounded"
+                value={agreementForm.endDate}
+                onChange={(e) => setAgreementForm({...agreementForm, endDate: e.target.value})}
+                min={agreementForm.startDate || formatDate(new Date(), 'yyyy-MM-dd')}
+                required
+                />
+            </div>
+            </div>
+
+            <div className="mb-4">
+            <label className="block mb-2 font-medium">Special Requests</label>
+            <textarea
+                className="w-full p-2 border rounded"
+                rows="3"
+                value={agreementForm.specialRequests}
+                onChange={(e) => setAgreementForm({...agreementForm, specialRequests: e.target.value})}
+                placeholder="Any special requests or conditions"
+            />
+            </div>
+
+            <div className="mb-4 flex items-center">
+            <input
+                type="checkbox"
+                id="terms"
+                className="mr-2"
+                checked={agreementForm.termsAccepted}
+                onChange={(e) => setAgreementForm({...agreementForm, termsAccepted: e.target.checked})}
+            />
+            <label htmlFor="terms">I agree to the terms and conditions</label>
+            </div>
+
+            <div className="flex justify-end gap-3">
+            <button
+                className="btn btn-ghost"
+                onClick={() => setShowAgreementModal(false)}
+                disabled={loading}
+            >
+                Cancel
+            </button>
+            <button
+                className="btn bg-yellow-500 hover:bg-yellow-600 text-white"
+                onClick={handleAgreementSubmit}
+                disabled={loading}
+            >
+                {loading ? 'Submitting...' : 'Submit Request'}
+            </button>
+            </div>
+        </div>
+        </div>
     </div>
   );
 };
