@@ -121,8 +121,8 @@ const CouponCard = ({ coupon, index }) => {
           <p className="text-sm text-gray-600 mb-2">{coupon.description || 'Special discount'}</p>
           <h3 className={`text-5xl font-bold my-3 ${color.text}`}>
             {coupon.discountType === 'percentage' ? 
-              `${coupon.discountValue}% OFF` : 
-              `$${coupon.discountValue} OFF`}
+              `${coupon.discount}% OFF` : 
+              `$${coupon.discount} OFF`}
           </h3>
           <div className="mt-4">
             <div className={`h-1 ${color.bg} rounded-full mx-auto w-3/4`}></div>
@@ -151,9 +151,9 @@ const CouponCard = ({ coupon, index }) => {
         
         <div className="text-center mb-4">
           <h3 className={`text-3xl font-bold ${color.text}`}>
-            {coupon.discountType === 'percentage' ? 
-              `${coupon.discountValue}% OFF` : 
-              `$${coupon.discountValue} OFF`}
+            {coupon.type === 'percentage' ? 
+              `${coupon.discount}% OFF` : 
+              `$${coupon.discount} OFF`}
           </h3>
           <div className="my-4">
             <div className={`inline-block px-4 py-2 rounded-lg ${color.bg} ${color.text} font-mono text-lg font-bold`}>
@@ -173,13 +173,13 @@ const CouponCard = ({ coupon, index }) => {
                 <strong>Valid until:</strong> {coupon.validUntil ? new Date(coupon.validUntil).toLocaleDateString() : 'N/A'}
               </span>
             </div>
-            {coupon.terms && (
+            {coupon.applicableFor && (
               <div className="flex items-start">
                 <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5 text-gray-500 mr-2 mt-0.5" viewBox="0 0 20 20" fill="currentColor">
                   <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a1 1 0 000 2v3a1 1 0 001 1h1a1 1 0 100-2h-1V9z" clipRule="evenodd" />
                 </svg>
                 <span className="text-sm text-gray-600">
-                  <strong>Terms:</strong> {coupon.terms}
+                  <strong>Terms:</strong> {coupon.applicableFor[0]}
                 </span>
               </div>
             )}
