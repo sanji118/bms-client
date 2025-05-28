@@ -1,10 +1,7 @@
 import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
-import { 
-  getUsers,
-  updateUserRole,
-  formatDate 
-} from "../utils"; 
+import { getUsers, updateUserRole, formatDate } from "../utils";
+import { User, Mail, Trash2 } from "lucide-react";
 
 const ManageMembers = () => {
   const [members, setMembers] = useState([]);
@@ -14,12 +11,11 @@ const ManageMembers = () => {
     const fetchMembers = async () => {
       try {
         const allUsers = await getUsers();
-        // Filter members on the client side (or you could modify the backend endpoint)
-        const memberUsers = allUsers.filter(user => user.role === 'member');
+        const memberUsers = allUsers.filter(user => user.role === "member");
         setMembers(memberUsers);
         setLoading(false);
       } catch (error) {
-        console.error('Error fetching members:', error);
+        console.error("Error fetching members:", error);
         setLoading(false);
       }
     };
@@ -29,63 +25,68 @@ const ManageMembers = () => {
 
   const handleRemoveMember = async (userId, email) => {
     const result = await Swal.fire({
-      title: 'Are you sure?',
+      title: "Are you sure?",
       text: "This will demote the member to a regular user.",
-      icon: 'warning',
+      icon: "warning",
       showCancelButton: true,
-      confirmButtonColor: '#3085d6',
-      cancelButtonColor: '#d33',
-      confirmButtonText: 'Yes, remove!'
+      confirmButtonColor: "#d33",
+      cancelButtonColor: "#3085d6",
+      confirmButtonText: "Yes, remove!",
     });
 
     if (result.isConfirmed) {
       try {
-        await updateUserRole(email, 'user');
-        setMembers(members.filter(member => member._id !== userId));
-        Swal.fire(
-          'Removed!',
-          'The member has been demoted to user.',
-          'success'
-        );
+        await updateUserRole(email, "user");
+        setMembers(members.filter((member) => member._id !== userId));
+        Swal.fire("Removed!", "The member has been demoted to user.", "success");
       } catch (error) {
-        console.error('Failed to update user role:', error);
-        Swal.fire(
-          'Error!',
-          'Failed to remove member.',
-          'error'
-        );
+        console.error("Failed to update user role:", error);
+        Swal.fire("Error!", "Failed to remove member.", "error");
       }
     }
   };
 
   return (
     <div className="p-6">
-      <h2 className="text-2xl font-bold mb-6">Manage Members</h2>
+      <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-yellow-700">
+        <User className="text-yellow-700" />
+        Manage Members
+      </h2>
+
       {loading ? (
-        <p>Loading...</p>
+        <p className="text-gray-500">Loading...</p>
       ) : (
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <table className="min-w-full">
-            <thead className="bg-gray-100">
+            <thead className="bg-pink-100 text-left text-sm text-gray-600">
               <tr>
-                <th className="py-3 px-4 text-left">Name</th>
-                <th className="py-3 px-4 text-left">Email</th>
-                <th className="py-3 px-4 text-left">Joined</th>
-                <th className="py-3 px-4 text-left">Actions</th>
+                <th className="py-3 px-4">Name</th>
+                <th className="py-3 px-4">Email</th>
+                <th className="py-3 px-4">Action</th>
               </tr>
             </thead>
             <tbody>
               {members.length > 0 ? (
                 members.map((member) => (
-                  <tr key={member._id} className="border-t">
-                    <td className="py-3 px-4">{member.name}</td>
-                    <td className="py-3 px-4">{member.email}</td>
-                    <td className="py-3 px-4">{formatDate(member.createdAt)}</td>
+                  <tr key={member._id} className="border-t border-t-pink-600 hover:bg-gray-50 transition">
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-2">
+                        <User className="w-4 h-4 text-gray-500" />
+                        {member.name}
+                      </div>
+                    </td>
+                    <td className="py-3 px-4">
+                      <div className="flex items-center gap-2">
+                        <Mail className="w-4 h-4 text-gray-500" />
+                        {member.email}
+                      </div>
+                    </td>
                     <td className="py-3 px-4">
                       <button
                         onClick={() => handleRemoveMember(member._id, member.email)}
-                        className="text-red-500 hover:text-red-700"
+                        className="btn btn-sm bg-red-100 text-red-600 hover:bg-red-200 flex items-center gap-1"
                       >
+                        <Trash2 className="w-4 h-4" />
                         Remove
                       </button>
                     </td>
@@ -93,8 +94,8 @@ const ManageMembers = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="4" className="py-4 px-4 text-center text-gray-500">
-                    No members found
+                  <td colSpan="3" className="text-center py-4 text-gray-500">
+                    No members found.
                   </td>
                 </tr>
               )}
