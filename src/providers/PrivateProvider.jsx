@@ -1,18 +1,24 @@
-import React, { useContext } from 'react'
+import React, { useContext } from 'react';
 import { Navigate } from 'react-router-dom';
 import { AuthContext } from './Authprovider';
 
-const PrivateProvider = ({children}) => {
-    const {user, loading} = useContext(AuthContext);
-    if(loading){
-        return <span className="loading loading-spinner loading-md"></span>
-    }
-    if(user){
-        return children;
-    }
-  return (
-    <Navigate to='/login'></Navigate>
-  )
-}
+const PrivateProvider = ({ children, role }) => {
+  const { user, loading } = useContext(AuthContext);
 
-export default PrivateProvider
+  if (loading) {
+    return <span className="loading loading-spinner loading-md"></span>;
+  }
+
+  if (!user) {
+    return <Navigate to="/login" replace />;
+  }
+
+  // If role is specified and user doesn't have that role
+  if (role && user.role !== role) {
+    return <Navigate to="/unauthorized" replace />;
+  }
+
+  return children;
+};
+
+export default PrivateProvider;

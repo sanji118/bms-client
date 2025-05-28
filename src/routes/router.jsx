@@ -1,4 +1,4 @@
-import { createBrowserRouter } from "react-router-dom";
+import { createBrowserRouter, Outlet } from "react-router-dom";
 import MainLayout from "../layouts/MainLayout";
 import NotFound from "../pages/NotFound";
 import Home from "../pages/Home/Home";
@@ -60,7 +60,7 @@ export const router = createBrowserRouter([
                     },
                     {
                     path: 'user',
-                    element: <PrivateProvider role="user" />,
+                    element: <PrivateProvider role="user"><Outlet/></PrivateProvider>,
                     children: [
                         { index: true, element: <MyProfile /> },
                         { path: 'profile', element: <MyProfile /> },
@@ -69,7 +69,7 @@ export const router = createBrowserRouter([
                     },
                     {
                     path: 'member',
-                    element: <PrivateProvider role="member" />,
+                    element: <PrivateProvider role="member"><Outlet/></PrivateProvider>,
                     children: [
                         { index: true, element: <MemberProfile /> },
                         { path: 'profile', element: <MemberProfile /> },
@@ -80,7 +80,7 @@ export const router = createBrowserRouter([
                     },
                     {
                     path: 'admin',
-                    element: <PrivateProvider role="admin" />,
+                    element: <PrivateProvider role="admin"><Outlet/></PrivateProvider>,
                     children: [
                         { index: true, element: <AdminProfile /> },
                         { path: 'profile', element: <AdminProfile /> },
