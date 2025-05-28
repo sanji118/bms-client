@@ -215,7 +215,6 @@ export const deleteCoupon = async (id) => {
     const response = await axiosInstance.delete(`/coupons/${id}`);
     return response.data;
   } catch (error) {
-    console.error("Failed to delete coupon:", error);
     throw error;
   }
 };

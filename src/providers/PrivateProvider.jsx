@@ -13,7 +13,7 @@ const PrivateProvider = ({ children, role }) => {
     return <Navigate to="/login" replace />;
   }
 
-  // If role is specified and user doesn't have that role
+  
   if (role && user.role !== role) {
     return <Navigate to="/unauthorized" replace />;
   }

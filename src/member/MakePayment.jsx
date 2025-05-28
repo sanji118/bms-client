@@ -36,7 +36,7 @@ const MakePayment = () => {
   const [apartment, setApartment] = useState(null);
   const [fetchingData, setFetchingData] = useState(true);
   const [paymentCompleted, setPaymentCompleted] = useState(false);
-
+  const [transactionId, setTransactionId] = useState('');
 
   useEffect(() => {
     const fetchApartmentData = async () => {
@@ -73,6 +73,10 @@ const MakePayment = () => {
     fetchApartmentData();
   }, [user.email]);
 
+  const generateTransactionId = () => {
+    return 'TXN-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substr(2, 5).toUpperCase();
+  };
+
   const handleApplyCoupon = async () => {
     if (!formData.couponCode) {
       setError('Please enter a coupon code');
@@ -83,13 +87,11 @@ const MakePayment = () => {
       setLoading(true);
       setError('');
       const coupon = await getCouponByCode(formData.couponCode);
-      console.log(coupon)
       
       if (!coupon || coupon.status !== 'active') {
         throw new Error('Invalid or inactive coupon');
       }
 
-      // Check coupon validity
       const currentDate = new Date();
       if (coupon.validFrom && new Date(coupon.validFrom) > currentDate) {
         throw new Error('This coupon is not yet valid');
@@ -99,17 +101,14 @@ const MakePayment = () => {
         throw new Error('This coupon has expired');
       }
 
-      // Check minimum rent requirement
       if (coupon.minRent && apartment.rent < coupon.minRent) {
         throw new Error(`Minimum rent of ${formatCurrency(coupon.minRent)} required for this coupon`);
       }
 
-      // Check applicable for
       if (coupon.applicableFor && !coupon.applicableFor.includes('existing-members')) {
         throw new Error('This coupon is not applicable for your account');
       }
 
-      // Calculate discount based on type
       let calculatedDiscount = 0;
       let calculatedDiscountAmount = 0;
       
@@ -156,11 +155,6 @@ const MakePayment = () => {
     setFormData(prev => ({ ...prev, couponCode: '' }));
   };
 
-  const generateTransactionId = ()=>{
-    return 'TXN-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substr(2, 5).toUpperCase();
-  }
-  const transactionId = generateTransactionId();
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -175,6 +169,8 @@ const MakePayment = () => {
 
     try {
       const finalAmount = apartment.rent - discountAmount;
+      const newTransactionId = generateTransactionId();
+      setTransactionId(newTransactionId);
       
       const paymentData = {
         memberEmail: user.email,
@@ -189,13 +185,11 @@ const MakePayment = () => {
         couponCode: couponApplied ? formData.couponCode : undefined,
         discountAmount: discountAmount,
         amount: finalAmount,
-        agreementId: apartment.agreementId
+        agreementId: apartment.agreementId,
+        transactionId: newTransactionId
       };
 
-      const result = await processPayment({
-        ...paymentData,
-        transactionId,
-      });
+      await processPayment(paymentData);
       
       setSuccess('Payment processed successfully!');
       setPaymentCompleted(true);
@@ -214,13 +208,13 @@ const MakePayment = () => {
             <p class="flex items-center gap-2"><strong>Amount Paid:</strong> ${formatCurrency(finalAmount)}</p>
             ${couponApplied ? `
               <p class="flex items-center gap-2"><strong>Discount Applied:</strong> 
-                ${couponApplied && discount > 0 ? `${discount}%` : formatCurrency(discountAmount)} 
+                ${discount > 0 ? `${discount}%` : formatCurrency(discountAmount)} 
                 (${formatCurrency(discountAmount)})
               </p>
             ` : ''}
             <p class="flex items-center gap-2"><strong>Original Rent:</strong> ${formatCurrency(apartment.rent)}</p>
             <p class="flex items-center gap-2"><strong>For Month:</strong> ${new Date(paymentData.month + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</p>
-            <p class="flex items-center gap-2"><strong>Transaction ID:</strong> ${transactionId || 'N/A'}</p>
+            <p class="flex items-center gap-2"><strong>Transaction ID:</strong> ${newTransactionId}</p>
           </div>
         `,
         icon: 'success',
@@ -381,7 +375,7 @@ const MakePayment = () => {
                   value={formData.couponCode} 
                   onChange={handleChange}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 pl-10"
-                  disabled={couponApplied || loading}
+                  disabled={couponApplied || loading || paymentCompleted}
                   placeholder="Enter coupon code"
                 />
                 <MdDiscount className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-xl" />
@@ -392,7 +386,7 @@ const MakePayment = () => {
               <button
                 type="button"
                 onClick={handleRemoveCoupon}
-                disabled={loading}
+                disabled={loading || paymentCompleted}
                 className="px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:bg-gray-400 transition-colors flex items-center gap-2"
               >
                 <FaTimes /> Remove
@@ -401,7 +395,7 @@ const MakePayment = () => {
               <button
                 type="button"
                 onClick={handleApplyCoupon}
-                disabled={couponApplied || loading || !formData.couponCode}
+                disabled={couponApplied || loading || !formData.couponCode || paymentCompleted}
                 className="px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors flex items-center gap-2"
               >
                 {loading ? <FaSpinner className="animate-spin" /> : <FaCheck />} 
@@ -468,22 +462,27 @@ const MakePayment = () => {
           <button
             type="submit"
             disabled={loading || paymentCompleted}
-            className="w-full py-3 px-6 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 disabled:bg-gray-400 transition-colors flex items-center justify-center gap-3"
+            className={`w-full py-3 px-6 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-3 ${
+              paymentCompleted 
+                ? 'bg-gray-400 cursor-not-allowed' 
+                : loading 
+                  ? 'bg-green-600' 
+                  : 'bg-green-600 hover:bg-green-700'
+            }`}
           >
             {loading ? (
               <>
                 <FaSpinner className="animate-spin" />
                 Processing Payment...
               </>
-            ) : 
-               paymentCompleted ? (
-                <>
-                  <FaCheckCircle className="text-lg text-white" />
-                  Payment Complete
-                </>
-              ):(
+            ) : paymentCompleted ? (
               <>
-                <FaCreditCard className="text-lg"/>
+                <FaCheckCircle className="text-lg" />
+                Payment Complete
+              </>
+            ) : (
+              <>
+                <FaCreditCard className="text-lg" />
                 Pay Now {formatCurrency(finalAmount)}
               </>
             )}
