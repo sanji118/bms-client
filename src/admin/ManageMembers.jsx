@@ -1,6 +1,10 @@
 import { useState, useEffect } from "react";
-import axios from "axios";
 import Swal from "sweetalert2";
+import { 
+  getUsers,
+  updateUserRole,
+  formatDate 
+} from "../utils"; 
 
 const ManageMembers = () => {
   const [members, setMembers] = useState([]);
@@ -9,8 +13,10 @@ const ManageMembers = () => {
   useEffect(() => {
     const fetchMembers = async () => {
       try {
-        const response = await axios.get('http://localhost:5000/users?role=member');
-        setMembers(response.data);
+        const allUsers = await getUsers();
+        // Filter members on the client side (or you could modify the backend endpoint)
+        const memberUsers = allUsers.filter(user => user.role === 'member');
+        setMembers(memberUsers);
         setLoading(false);
       } catch (error) {
         console.error('Error fetching members:', error);
@@ -21,7 +27,7 @@ const ManageMembers = () => {
     fetchMembers();
   }, []);
 
-  const handleRemoveMember = async (userId) => {
+  const handleRemoveMember = async (userId, email) => {
     const result = await Swal.fire({
       title: 'Are you sure?',
       text: "This will demote the member to a regular user.",
@@ -34,7 +40,7 @@ const ManageMembers = () => {
 
     if (result.isConfirmed) {
       try {
-        await axios.patch(`http://localhost:5000/users/${userId}`, { role: 'user' });
+        await updateUserRole(email, 'user');
         setMembers(members.filter(member => member._id !== userId));
         Swal.fire(
           'Removed!',
@@ -42,6 +48,7 @@ const ManageMembers = () => {
           'success'
         );
       } catch (error) {
+        console.error('Failed to update user role:', error);
         Swal.fire(
           'Error!',
           'Failed to remove member.',
@@ -63,6 +70,7 @@ const ManageMembers = () => {
               <tr>
                 <th className="py-3 px-4 text-left">Name</th>
                 <th className="py-3 px-4 text-left">Email</th>
+                <th className="py-3 px-4 text-left">Joined</th>
                 <th className="py-3 px-4 text-left">Actions</th>
               </tr>
             </thead>
@@ -72,9 +80,10 @@ const ManageMembers = () => {
                   <tr key={member._id} className="border-t">
                     <td className="py-3 px-4">{member.name}</td>
                     <td className="py-3 px-4">{member.email}</td>
+                    <td className="py-3 px-4">{formatDate(member.createdAt)}</td>
                     <td className="py-3 px-4">
                       <button
-                        onClick={() => handleRemoveMember(member._id)}
+                        onClick={() => handleRemoveMember(member._id, member.email)}
                         className="text-red-500 hover:text-red-700"
                       >
                         Remove
@@ -84,7 +93,7 @@ const ManageMembers = () => {
                 ))
               ) : (
                 <tr>
-                  <td colSpan="3" className="py-4 px-4 text-center text-gray-500">
+                  <td colSpan="4" className="py-4 px-4 text-center text-gray-500">
                     No members found
                   </td>
                 </tr>
