@@ -1,4 +1,3 @@
-
 import { Outlet } from "react-router-dom";
 import { useAuth } from "../hook/useAuth";
 import { FaHome, FaUser, FaBullhorn, FaMoneyBillWave, FaHistory, FaUsers, FaEnvelope, FaGift, FaSignOutAlt, FaUserShield, FaFileContract } from "react-icons/fa";
@@ -9,23 +8,23 @@ const DashboardLayout = () => {
   const navigate = useNavigate();
 
   const userLinks = [
-    { path: "profile", name: "My Profile", icon: <FaUser className="text-lg" /> },
-    { path: "announcements", name: "Announcements", icon: <FaBullhorn className="text-lg" /> },
+    { path: "user/profile", name: "My Profile", icon: <FaUser className="text-lg" /> },
+    { path: "user/announcements", name: "Announcements", icon: <FaBullhorn className="text-lg" /> },
   ];
 
   const memberLinks = [
-    { path: "profile", name: "My Profile", icon: <FaUser className="text-lg" /> },
-    { path: "make-payment", name: "Make Payment", icon: <FaMoneyBillWave className="text-lg" /> },
-    { path: "payment-history", name: "Payment History", icon: <FaHistory className="text-lg" /> },
-    { path: "announcements", name: "Announcements", icon: <FaBullhorn className="text-lg" /> },
+    { path: "member/profile", name: "My Profile", icon: <FaUser className="text-lg" /> },
+    { path: "member/make-payment", name: "Make Payment", icon: <FaMoneyBillWave className="text-lg" /> },
+    { path: "member/payment-history", name: "Payment History", icon: <FaHistory className="text-lg" /> },
+    { path: "member/announcements", name: "Announcements", icon: <FaBullhorn className="text-lg" /> },
   ];
 
   const adminLinks = [
-    { path: "profile", name: "Admin Profile", icon: <FaUserShield className="text-lg" /> },
-    { path: "manage-members", name: "Manage Members", icon: <FaUsers className="text-lg" /> },
-    { path: "make-announcement", name: "Make Announcement", icon: <FaEnvelope className="text-lg" /> },
-    { path: "agreement-requests", name: "Agreement Requests", icon: <FaFileContract className="text-lg" /> },
-    { path: "manage-coupons", name: "Manage Coupons", icon: <FaGift className="text-lg" /> },
+    { path: "admin/profile", name: "Admin Profile", icon: <FaUserShield className="text-lg" /> },
+    { path: "admin/manage-members", name: "Manage Members", icon: <FaUsers className="text-lg" /> },
+    { path: "admin/make-announcement", name: "Make Announcement", icon: <FaEnvelope className="text-lg" /> },
+    { path: "admin/agreement-requests", name: "Agreement Requests", icon: <FaFileContract className="text-lg" /> },
+    { path: "admin/manage-coupons", name: "Manage Coupons", icon: <FaGift className="text-lg" /> },
   ];
 
   const getLinks = () => {
@@ -43,7 +42,6 @@ const DashboardLayout = () => {
     <div className="flex min-h-screen bg-gray-100">
       {/* Sidebar */}
       <div className="w-64 bg-white shadow-md flex flex-col">
-
         {/* User Info */}
         <div className="p-4 border-b flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">

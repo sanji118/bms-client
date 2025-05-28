@@ -7,9 +7,6 @@ import Register from "../Auth/Register";
 import ApartmentsList from "../pages/Apartments/ApartmentsList";
 import ApartmentDetails from "../pages/Apartments/ApartmentDetails";
 import PrivateProvider from "../providers/PrivateProvider";
-import UserDashboard from "../pages/Dashboard/UserDashboard";
-import MemberDashboard from "../pages/Dashboard/MemberDashboard";
-import AdminDashboard from "../pages/Dashboard/AdminDashboard";
 import UserAnnouncements from "../User/UserAnnouncements";
 import MemberProfile from "../member/MemberProfile";
 import MakePayment from "../member/MakePayment";
@@ -55,58 +52,46 @@ export const router = createBrowserRouter([
             },
             {
                 path: 'dashboard',
-                element: <DashboardLayout/>,
+                element: <DashboardLayout />,
                 children: [
                     {
-                        index: true,
-                        element: <DashboardRedirect/>
+                    index: true,
+                    element: <DashboardRedirect />
                     },
                     {
-                        path: 'user',
-                        element: (
-                        <PrivateProvider role="user">
-                            <UserDashboard />
-                        </PrivateProvider>
-                        ),
-                        children: [
+                    path: 'user',
+                    element: <PrivateProvider role="user" />,
+                    children: [
                         { index: true, element: <MyProfile /> },
                         { path: 'profile', element: <MyProfile /> },
                         { path: 'announcements', element: <UserAnnouncements /> },
-                        ],
+                    ],
                     },
                     {
-                        path: 'member',
-                        element: (
-                        <PrivateProvider role="member">
-                            <MemberDashboard />
-                        </PrivateProvider>
-                        ),
-                        children: [
+                    path: 'member',
+                    element: <PrivateProvider role="member" />,
+                    children: [
                         { index: true, element: <MemberProfile /> },
                         { path: 'profile', element: <MemberProfile /> },
                         { path: 'make-payment', element: <MakePayment /> },
                         { path: 'payment-history', element: <PaymentHistory /> },
                         { path: 'announcements', element: <MemberAnnouncements /> },
-                        ],
+                    ],
                     },
                     {
-                        path: 'admin',
-                        element: (
-                        <PrivateProvider role="admin">
-                            <AdminDashboard />
-                        </PrivateProvider>
-                        ),
-                        children: [
-                            { index: true, element: <AdminProfile /> },
-                            { path: 'profile', element: <AdminProfile /> },
-                            { path: 'manage-members', element: <ManageMembers /> },
-                            { path: 'make-announcement', element: <MakeAnnouncement /> },
-                            { path: 'agreement-requests', element: <AgreementRequests /> },
-                            { path: 'manage-coupons', element: <ManageCoupons /> },
-                        ],
+                    path: 'admin',
+                    element: <PrivateProvider role="admin" />,
+                    children: [
+                        { index: true, element: <AdminProfile /> },
+                        { path: 'profile', element: <AdminProfile /> },
+                        { path: 'manage-members', element: <ManageMembers /> },
+                        { path: 'make-announcement', element: <MakeAnnouncement /> },
+                        { path: 'agreement-requests', element: <AgreementRequests /> },
+                        { path: 'manage-coupons', element: <ManageCoupons /> },
+                    ],
                     },
                 ],
-            },
+            }
         ]
     }
 ])
