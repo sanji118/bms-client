@@ -1,11 +1,27 @@
-import React from 'react'
+import React from 'react';
 
-const StatCard = ({ title, value, icon, color = 'primary' }) => {
+const StatCard = ({ title, value, icon, color }) => {
+  // Define color mappings to ensure Tailwind includes these classes
+  const colorClasses = {
+    primary: 'bg-primary text-primary-content',
+    secondary: 'bg-secondary text-secondary-content',
+    accent: 'bg-accent text-accent-content',
+    success: 'bg-success text-success-content',
+    warning: 'bg-warning text-warning-content',
+    error: 'bg-error text-error-content',
+    info: 'bg-info text-info-content',
+  };
+
+  // Get the appropriate classes based on the color prop
+  const classes = colorClasses[color] || 'bg-primary text-primary-content';
+
   return (
-    <div className={`card bg-${color} text-${color}-content shadow-md hover:shadow-lg transition-shadow`}>
-      <div className="card-body">
+    <div className={`card ${classes} shadow-md hover:shadow-lg transition-shadow duration-300 group`}>
+      <div className="card-body p-4">
         <div className="flex items-center gap-4">
-          <div className="text-4xl">{icon}</div>
+          <div className="p-3 rounded-full bg-white/20 group-hover:bg-white/30 transition-colors duration-300">
+            {React.cloneElement(icon, { className: "w-6 h-6" })}
+          </div>
           <div>
             <h3 className="text-sm font-semibold opacity-80">{title}</h3>
             <p className="text-2xl font-bold">{value}</p>
@@ -13,7 +29,7 @@ const StatCard = ({ title, value, icon, color = 'primary' }) => {
         </div>
       </div>
     </div>
-  )
-}
+  );
+};
 
-export default StatCard
+export default StatCard;
