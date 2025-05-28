@@ -21,7 +21,7 @@ import DashboardRedirect from "../components/DashboardRedirect";
 import DashboardLayout from "../layouts/DashboardLayout";
 import MyProfile from "../User/MyProfile";
 import Unauthorized from "../components/Unauthorized";
-import Coupons from "../components/Coupons";
+import Coupons from "../coupons/Coupons";
 
 
 const apartments = () => fetch('http://localhost:5000/apartments')
