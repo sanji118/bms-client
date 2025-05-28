@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import axios from 'axios';
-import { CopyToClipboard } from 'react-copy-to-clipboard';
+import copy from 'copy-to-clipboard';
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';
 
@@ -184,17 +184,17 @@ const CouponSection = () => {
                       )}
                     </div>
                     
-                    <CopyToClipboard 
-                      text={coupon.code}
-                      onCopy={() => showSuccessAlert(coupon.code)}
+                    <button 
+                      className={`mt-auto text-white py-2 px-4 rounded-lg transition w-full ${color.button}`}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        copy(coupon.code);
+                        showSuccessAlert(coupon.code);
+                      }}
                     >
-                      <button 
-                        className={`mt-auto text-white py-2 px-4 rounded-lg transition w-full ${color.button}`}
-                        onClick={(e) => e.stopPropagation()}
-                      >
-                        Copy Code
-                      </button>
-                    </CopyToClipboard>
+                      Copy Code
+                    </button>
+
                   </motion.div>
                 </motion.div>
               );
