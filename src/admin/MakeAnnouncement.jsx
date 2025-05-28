@@ -1,6 +1,7 @@
 import { useState } from "react";
 import Swal from "sweetalert2";
-import { createAnnouncement } from "../utils"; 
+import { createAnnouncement } from "../utils";
+import { MdCampaign } from "react-icons/md";
 
 const MakeAnnouncement = () => {
   const [title, setTitle] = useState("");
@@ -9,13 +10,9 @@ const MakeAnnouncement = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
+
     if (!title.trim() || !description.trim()) {
-      Swal.fire(
-        'Validation Error!',
-        'Please fill in all fields.',
-        'warning'
-      );
+      Swal.fire("Validation Error!", "Please fill in all fields.", "warning");
       return;
     }
 
@@ -23,20 +20,16 @@ const MakeAnnouncement = () => {
 
     try {
       await createAnnouncement({ title, description });
-      
-      Swal.fire(
-        'Success!',
-        'Announcement has been published.',
-        'success'
-      );
+
+      Swal.fire("Success!", "Announcement has been published.", "success");
       setTitle("");
       setDescription("");
     } catch (error) {
-      console.error('Failed to create announcement:', error);
+      console.error("Failed to create announcement:", error);
       Swal.fire(
-        'Error!',
-        error.response?.data?.message || 'Failed to publish announcement.',
-        'error'
+        "Error!",
+        error.response?.data?.message || "Failed to publish announcement.",
+        "error"
       );
     } finally {
       setLoading(false);
@@ -44,42 +37,54 @@ const MakeAnnouncement = () => {
   };
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-6">Make Announcement</h2>
-      <div className="bg-white p-6 rounded-lg shadow-md max-w-2xl mx-auto">
-        <form onSubmit={handleSubmit}>
-          <div className="mb-4">
-            <label className="block mb-2 font-medium">Title:</label>
+    <div className="min-h-screen flex items-center justify-center bg-gradient-to-br from-yellow-100 to-white p-4">
+      <div className="bg-white shadow-2xl rounded-xl max-w-3xl w-full p-8">
+        <div className="flex items-center mb-6">
+          <MdCampaign className="text-3xl text-yellow-500 mr-2" />
+          <h2 className="text-3xl font-extrabold text-gray-800">
+            Make an Announcement
+          </h2>
+        </div>
+
+        <form onSubmit={handleSubmit} className="space-y-6">
+          <div>
+            <label className="block text-gray-700 font-semibold mb-2">
+              Title
+            </label>
             <input
               type="text"
-              className="w-full p-2 border rounded"
+              className="w-full border border-gray-300 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200 rounded-lg p-3 transition-all"
               value={title}
               onChange={(e) => setTitle(e.target.value)}
-              required
               maxLength={100}
-              placeholder="Enter announcement title (max 100 characters)"
+              placeholder="Enter a short title for your announcement"
+              required
             />
           </div>
-          <div className="mb-4">
-            <label className="block mb-2 font-medium">Description:</label>
+
+          <div>
+            <label className="block text-gray-700 font-semibold mb-2">
+              Description
+            </label>
             <textarea
-              className="w-full p-2 border rounded min-h-[150px]"
+              className="w-full border border-gray-300 focus:border-yellow-500 focus:ring-2 focus:ring-yellow-200 rounded-lg p-3 min-h-[150px] transition-all"
               value={description}
               onChange={(e) => setDescription(e.target.value)}
-              required
               maxLength={500}
-              placeholder="Enter announcement details (max 500 characters)"
+              placeholder="Write your announcement details here"
+              required
             />
-            <p className="text-sm text-gray-500 mt-1">
+            <div className="text-sm text-gray-500 text-right">
               {description.length}/500 characters
-            </p>
+            </div>
           </div>
+
           <button
             type="submit"
-            className="bg-yellow-500 text-white px-4 py-2 rounded hover:bg-yellow-600 disabled:bg-yellow-300 transition-colors"
             disabled={loading || !title.trim() || !description.trim()}
+            className="bg-yellow-600 hover:bg-yellow-700 text-white font-semibold py-3 px-6 rounded-lg shadow-md disabled:bg-yellow-300 transition-all w-full"
           >
-            {loading ? 'Publishing...' : 'Publish Announcement'}
+            {loading ? "Publishing..." : " Publish Announcement"}
           </button>
         </form>
       </div>
