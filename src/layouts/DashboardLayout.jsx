@@ -25,6 +25,7 @@ const DashboardLayout = () => {
     { path: "admin/make-announcement", name: "Make Announcement", icon: <FaEnvelope className="text-lg" /> },
     { path: "admin/agreement-requests", name: "Agreement Requests", icon: <FaFileContract className="text-lg" /> },
     { path: "admin/manage-coupons", name: "Manage Coupons", icon: <FaGift className="text-lg" /> },
+    { path: "member/announcements", name: "Announcements", icon: <FaBullhorn className="text-lg" /> },
   ];
 
   const getLinks = () => {

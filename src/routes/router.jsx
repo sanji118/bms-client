@@ -98,6 +98,7 @@ export const router = createBrowserRouter([
                         { path: 'make-announcement', element: <MakeAnnouncement /> },
                         { path: 'agreement-requests', element: <AgreementRequests /> },
                         { path: 'manage-coupons', element: <ManageCoupons /> },
+                        { path: 'announcements', element: <MemberAnnouncements /> }
                     ],
                     },
                 ],
