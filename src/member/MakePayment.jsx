@@ -28,6 +28,7 @@ const MakePayment = () => {
   });
   const [couponApplied, setCouponApplied] = useState(false);
   const [discount, setDiscount] = useState(0);
+  const [discountAmount, setDiscountAmount] = useState(0);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
@@ -80,26 +81,64 @@ const MakePayment = () => {
       setError('');
       const coupon = await getCouponByCode(formData.couponCode);
       
-      if (!coupon || !coupon.isActive) {
+      if (!coupon || coupon.status !== 'active') {
         throw new Error('Invalid or inactive coupon');
       }
 
-      if (coupon.expiryDate && new Date(coupon.expiryDate) < new Date()) {
+      // Check coupon validity
+      const currentDate = new Date();
+      if (coupon.validFrom && new Date(coupon.validFrom) > currentDate) {
+        throw new Error('This coupon is not yet valid');
+      }
+
+      if (coupon.validUntil && new Date(coupon.validUntil) < currentDate) {
         throw new Error('This coupon has expired');
       }
 
-      setDiscount(coupon.discountPercentage);
+      // Check minimum rent requirement
+      if (coupon.minRent && apartment.rent < coupon.minRent) {
+        throw new Error(`Minimum rent of ${formatCurrency(coupon.minRent)} required for this coupon`);
+      }
+
+      // Check applicable for
+      if (coupon.applicableFor && !coupon.applicableFor.includes('existing-members')) {
+        throw new Error('This coupon is not applicable for your account');
+      }
+
+      // Calculate discount based on type
+      let calculatedDiscount = 0;
+      let calculatedDiscountAmount = 0;
+      
+      if (coupon.type === 'percentage') {
+        calculatedDiscount = coupon.discount;
+        calculatedDiscountAmount = apartment.rent * (coupon.discount / 100);
+      } else if (coupon.type === 'fixed') {
+        calculatedDiscountAmount = coupon.discount;
+        calculatedDiscount = (calculatedDiscountAmount / apartment.rent) * 100;
+      }
+
+      setDiscount(calculatedDiscount);
+      setDiscountAmount(calculatedDiscountAmount);
       setCouponApplied(true);
       
       Swal.fire({
         title: 'Coupon Applied!',
-        text: `You've received ${coupon.discountPercentage}% discount`,
+        html: `
+          <div class="text-left">
+            <p><strong>Code:</strong> ${coupon.code}</p>
+            <p><strong>Discount:</strong> ${coupon.type === 'percentage' 
+              ? `${coupon.discount}%` 
+              : formatCurrency(coupon.discount)}</p>
+            <p><strong>Description:</strong> ${coupon.description}</p>
+          </div>
+        `,
         icon: 'success',
         confirmButtonColor: '#10B981',
       });
     } catch (err) {
       setError(err.message);
       setDiscount(0);
+      setDiscountAmount(0);
       setCouponApplied(false);
     } finally {
       setLoading(false);
@@ -108,6 +147,7 @@ const MakePayment = () => {
 
   const handleRemoveCoupon = () => {
     setDiscount(0);
+    setDiscountAmount(0);
     setCouponApplied(false);
     setFormData(prev => ({ ...prev, couponCode: '' }));
   };
@@ -125,19 +165,21 @@ const MakePayment = () => {
     setSuccess('');
 
     try {
+      const finalAmount = apartment.rent - discountAmount;
+      
       const paymentData = {
         memberEmail: user.email,
         floor: apartment.floor,
         block: apartment.block,
         apartmentNo: apartment.roomNo,
         rent: apartment.rent,
-        startDate: activeAgreement.startDate,
-        endDate: activeAgreement.endDate,
-        requestedDate: activeAgreement.requestDate,
+        startDate: apartment.startDate,
+        endDate: apartment.endDate,
+        requestedDate: apartment.requestedDate,
         month: formData.month,
         couponCode: couponApplied ? formData.couponCode : undefined,
-        discountAmount: apartment.rent * (discount / 100),
-        amount: apartment.rent * (1 - discount / 100),
+        discountAmount: discountAmount,
+        amount: finalAmount,
         agreementId: apartment.agreementId
       };
 
@@ -150,13 +192,20 @@ const MakePayment = () => {
       });
       setCouponApplied(false);
       setDiscount(0);
+      setDiscountAmount(0);
 
       Swal.fire({
         title: 'Payment Successful!',
         html: `
           <div class="text-left space-y-2">
-            <p class="flex items-center gap-2"><strong>Amount Paid:</strong> ${formatCurrency(paymentData.amount)}</p>
-            ${couponApplied ? `<p class="flex items-center gap-2"><strong>Discount Applied:</strong> ${discount}% (${formatCurrency(paymentData.discountAmount)})</p>` : ''}
+            <p class="flex items-center gap-2"><strong>Amount Paid:</strong> ${formatCurrency(finalAmount)}</p>
+            ${couponApplied ? `
+              <p class="flex items-center gap-2"><strong>Discount Applied:</strong> 
+                ${couponApplied && discount > 0 ? `${discount}%` : formatCurrency(discountAmount)} 
+                (${formatCurrency(discountAmount)})
+              </p>
+            ` : ''}
+            <p class="flex items-center gap-2"><strong>Original Rent:</strong> ${formatCurrency(apartment.rent)}</p>
             <p class="flex items-center gap-2"><strong>For Month:</strong> ${new Date(paymentData.month + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</p>
             <p class="flex items-center gap-2"><strong>Transaction ID:</strong> ${result.transactionId || 'N/A'}</p>
           </div>
@@ -208,8 +257,7 @@ const MakePayment = () => {
     );
   }
 
-  const discountedAmount = apartment.rent * (1 - discount / 100);
-  const discountAmount = apartment.rent * (discount / 100);
+  const finalAmount = apartment.rent - discountAmount;
 
   return (
     <motion.div
@@ -226,7 +274,7 @@ const MakePayment = () => {
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Member Email */}
           <div className="space-y-2">
-            <label className=" text-gray-700 font-medium flex items-center gap-2">
+            <label className="text-gray-700 font-medium flex items-center gap-2">
               <FaEnvelope /> Member Email
             </label>
             <input 
@@ -239,7 +287,7 @@ const MakePayment = () => {
           
           {/* Floor */}
           <div className="space-y-2">
-            <label className=" text-gray-700 font-medium flex items-center gap-2">
+            <label className="text-gray-700 font-medium flex items-center gap-2">
               <FaLayerGroup /> Floor
             </label>
             <input 
@@ -252,7 +300,7 @@ const MakePayment = () => {
           
           {/* Block Name */}
           <div className="space-y-2">
-            <label className=" text-gray-700 font-medium flex items-center gap-2">
+            <label className="text-gray-700 font-medium flex items-center gap-2">
               <FaBuilding /> Block Name
             </label>
             <input 
@@ -265,7 +313,7 @@ const MakePayment = () => {
           
           {/* Apartment No */}
           <div className="space-y-2">
-            <label className="block text-gray-700 font-medium  items-center gap-2">
+            <label className="block text-gray-700 font-medium items-center gap-2">
               <MdOutlineApartment /> Apartment No
             </label>
             <input 
@@ -278,7 +326,7 @@ const MakePayment = () => {
           
           {/* Rent Amount */}
           <div className="space-y-2">
-            <label className="block text-gray-700 font-medium  items-center gap-2">
+            <label className="block text-gray-700 font-medium items-center gap-2">
               <FaMoneyBillWave /> Rent Amount
             </label>
             <input 
@@ -291,7 +339,7 @@ const MakePayment = () => {
           
           {/* Month */}
           <div className="space-y-2">
-            <label className="block text-gray-700 font-medium  items-center gap-2">
+            <label className="block text-gray-700 font-medium items-center gap-2">
               <FaCalendarAlt /> Month
             </label>
             <input 
@@ -385,12 +433,14 @@ const MakePayment = () => {
                   <MdDiscount className="text-blue-600 text-xl" />
                   <div>
                     <p className="font-medium text-blue-800">Coupon applied successfully!</p>
-                    <p className="text-sm text-blue-600">{discount}% discount applied</p>
+                    <p className="text-sm text-blue-600">
+                      {discount > 0 ? `${discount}% discount` : `${formatCurrency(discountAmount)} off`}
+                    </p>
                   </div>
                 </div>
                 <div className="text-right">
                   <p className="text-sm text-gray-600 line-through">{formatCurrency(apartment.rent)}</p>
-                  <p className="text-xl font-bold text-blue-800">{formatCurrency(discountedAmount)}</p>
+                  <p className="text-xl font-bold text-blue-800">{formatCurrency(finalAmount)}</p>
                 </div>
               </div>
               <div className="mt-2 text-sm text-blue-700 flex items-center gap-1">
@@ -415,7 +465,7 @@ const MakePayment = () => {
             ) : (
               <>
                 <FaCreditCard className="text-lg" />
-                Pay Now {couponApplied ? formatCurrency(discountedAmount) : formatCurrency(apartment.rent)}
+                Pay Now {formatCurrency(finalAmount)}
               </>
             )}
           </button>
