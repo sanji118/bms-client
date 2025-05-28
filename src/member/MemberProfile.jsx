@@ -1,6 +1,6 @@
 import { useAuth } from '../hook/useAuth';
 import { useEffect, useState } from 'react';
-import { getAgreements } from '../utils';
+import { formatDate, getAgreements } from '../utils';
 
 
 

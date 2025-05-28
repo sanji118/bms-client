@@ -128,7 +128,7 @@ const Navbar = () => {
                 ) : (
                     <Link 
                         to="/login" 
-                        className="btn btn-primary"
+                        className="btn bg-yellow-500 text-white"
                         onClick={closeAllMenus}
                     >
                         <FaSignInAlt className="mr-2" />
@@ -186,7 +186,7 @@ const Navbar = () => {
                         <div className="p-4">
                             <Link 
                                 to="/login" 
-                                className="btn btn-primary w-full"
+                                className="btn bg-yellow-500 w-full"
                                 onClick={closeAllMenus}
                             >
                                 <FaSignInAlt className="mr-2" />
