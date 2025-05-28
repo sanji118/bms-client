@@ -15,7 +15,8 @@ import {
   FaHome,
   FaLayerGroup,
   FaEnvelope,
-  FaCreditCard
+  FaCreditCard,
+  FaCheckCircle
 } from 'react-icons/fa';
 import { GiPayMoney } from 'react-icons/gi';
 import { MdDiscount, MdOutlineApartment } from 'react-icons/md';
@@ -34,6 +35,8 @@ const MakePayment = () => {
   const [success, setSuccess] = useState('');
   const [apartment, setApartment] = useState(null);
   const [fetchingData, setFetchingData] = useState(true);
+  const [paymentCompleted, setPaymentCompleted] = useState(false);
+
 
   useEffect(() => {
     const fetchApartmentData = async () => {
@@ -80,6 +83,7 @@ const MakePayment = () => {
       setLoading(true);
       setError('');
       const coupon = await getCouponByCode(formData.couponCode);
+      console.log(coupon)
       
       if (!coupon || coupon.status !== 'active') {
         throw new Error('Invalid or inactive coupon');
@@ -152,6 +156,11 @@ const MakePayment = () => {
     setFormData(prev => ({ ...prev, couponCode: '' }));
   };
 
+  const generateTransactionId = ()=>{
+    return 'TXN-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substr(2, 5).toUpperCase();
+  }
+  const transactionId = generateTransactionId();
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     
@@ -183,9 +192,13 @@ const MakePayment = () => {
         agreementId: apartment.agreementId
       };
 
-      const result = await processPayment(paymentData);
+      const result = await processPayment({
+        ...paymentData,
+        transactionId,
+      });
       
       setSuccess('Payment processed successfully!');
+      setPaymentCompleted(true);
       setFormData({
         month: getCurrentMonth(),
         couponCode: '',
@@ -207,7 +220,7 @@ const MakePayment = () => {
             ` : ''}
             <p class="flex items-center gap-2"><strong>Original Rent:</strong> ${formatCurrency(apartment.rent)}</p>
             <p class="flex items-center gap-2"><strong>For Month:</strong> ${new Date(paymentData.month + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</p>
-            <p class="flex items-center gap-2"><strong>Transaction ID:</strong> ${result.transactionId || 'N/A'}</p>
+            <p class="flex items-center gap-2"><strong>Transaction ID:</strong> ${transactionId || 'N/A'}</p>
           </div>
         `,
         icon: 'success',
@@ -454,7 +467,7 @@ const MakePayment = () => {
         <div className="pt-4">
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || paymentCompleted}
             className="w-full py-3 px-6 bg-green-600 text-white font-medium rounded-lg hover:bg-green-700 disabled:bg-gray-400 transition-colors flex items-center justify-center gap-3"
           >
             {loading ? (
@@ -462,9 +475,15 @@ const MakePayment = () => {
                 <FaSpinner className="animate-spin" />
                 Processing Payment...
               </>
-            ) : (
+            ) : 
+               paymentCompleted ? (
+                <>
+                  <FaCheckCircle className="text-lg text-white" />
+                  Payment Complete
+                </>
+              ):(
               <>
-                <FaCreditCard className="text-lg" />
+                <FaCreditCard className="text-lg"/>
                 Pay Now {formatCurrency(finalAmount)}
               </>
             )}
