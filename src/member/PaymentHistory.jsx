@@ -1,46 +1,50 @@
-import { useState, useEffect } from "react";
-import { useAuth } from "../hook/useAuth";
-import axios from "axios";
-
+import { useQuery } from '@tanstack/react-query';
+import { formatCurrency, formatDate, getPayments } from '../utils';
+import { useAuth } from '../hook/useAuth';
 
 const PaymentHistory = () => {
   const { user } = useAuth();
-  const [payments, setPayments] = useState([]);
 
-  useEffect(() => {
-    const fetchPayments = async () => {
-      try {
-        const response = await axios.get(`http://localhost:5000/payments?email=${user.email}`);
-        setPayments(response.data);
-      } catch (error) {
-        console.error('Error fetching payments:', error);
-      }
-    };
+  const { data: payments = [], isLoading } = useQuery({
+    queryKey: ['payments', user?.email],
+    queryFn: () => getPayments(user?.email),
+    enabled: !!user?.email
+  });
 
-    fetchPayments();
-  }, [user.email]);
+  if (isLoading) return <div>Loading payment history...</div>;
 
   return (
-    <div className="p-6">
+    <div className="bg-white p-6 rounded-lg shadow-md">
       <h2 className="text-2xl font-bold mb-6">Payment History</h2>
-      {payments.length > 0 ? (
-        <div className="bg-white rounded-lg shadow-md overflow-hidden">
-          <table className="min-w-full">
-            <thead className="bg-gray-100">
-              <tr>
-                <th className="py-3 px-4 text-left">Month</th>
-                <th className="py-3 px-4 text-left">Amount</th>
-                <th className="py-3 px-4 text-left">Status</th>
-                <th className="py-3 px-4 text-left">Date</th>
-                <th className="py-3 px-4 text-left">Transaction ID</th>
+      
+      {payments.length === 0 ? (
+        <p>No payments found.</p>
+      ) : (
+        <div className="overflow-x-auto">
+          <table className="min-w-full bg-white">
+            <thead>
+              <tr className="bg-gray-100">
+                <th className="py-2 px-4 border">Month</th>
+                <th className="py-2 px-4 border">Amount</th>
+                <th className="py-2 px-4 border">Discount</th>
+                <th className="py-2 px-4 border">Coupon</th>
+                <th className="py-2 px-4 border">Date</th>
+                <th className="py-2 px-4 border">Status</th>
               </tr>
             </thead>
             <tbody>
-              {payments.map((payment) => (
-                <tr key={payment._id} className="border-t">
-                  <td className="py-3 px-4">{payment.month}</td>
-                  <td className="py-3 px-4">${payment.amount}</td>
-                  <td className="py-3 px-4">
+              {payments?.map((payment) => (
+                <tr key={payment._id} className="hover:bg-gray-50">
+                  <td className="py-2 px-4 border text-center">{payment.month}</td>
+                  <td className="py-2 px-4 border text-center">{formatCurrency(payment.amount)}</td>
+                  <td className="py-2 px-4 border text-center">
+                    {payment.discountAmount ? formatCurrency(payment.discountAmount) : '-'}
+                  </td>
+                  <td className="py-2 px-4 border text-center">
+                    {payment.couponCode || '-'}
+                  </td>
+                  <td className="py-2 px-4 border text-center">{formatDate(payment.createdAt)}</td>
+                  <td className="py-2 px-4 border text-center">
                     <span className={`px-2 py-1 rounded-full text-xs ${
                       payment.status === 'completed' 
                         ? 'bg-green-100 text-green-800' 
@@ -49,15 +53,11 @@ const PaymentHistory = () => {
                       {payment.status}
                     </span>
                   </td>
-                  <td className="py-3 px-4">{new Date(payment.paymentDate).toLocaleDateString()}</td>
-                  <td className="py-3 px-4">{payment.transactionId || 'N/A'}</td>
                 </tr>
               ))}
             </tbody>
           </table>
         </div>
-      ) : (
-        <p>No payment history available.</p>
       )}
     </div>
   );
