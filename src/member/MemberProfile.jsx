@@ -1,67 +1,105 @@
-import { useAuth } from "../hook/useAuth";
-import { useEffect, useState } from "react";
-import axios from "axios";
+import { useAuth } from '../hook/useAuth';
+import { useEffect, useState } from 'react';
+import { getAgreements } from '../utils';
+
 
 
 const MemberProfile = () => {
   const { user } = useAuth();
   const [agreement, setAgreement] = useState(null);
+  const [apartment, setApartment] = useState(null);
 
   useEffect(() => {
     const fetchAgreement = async () => {
       try {
-        const response = await axios.get(`http://localhost:5000/agreements?email=${user.email}`);
-        if (response.data.length > 0) {
-          setAgreement(response.data[0]);
+        const agreements = await getAgreements(user.email);
+        if (agreements.length > 0) {
+          setAgreement(agreements[0]);
+          // In a real app, you would fetch apartment details using agreement.apartmentId
+          setApartment({
+            floor: '3',
+            block: 'B',
+            roomNo: '302',
+            rent: 1200
+          });
         }
       } catch (error) {
         console.error('Error fetching agreement:', error);
       }
     };
 
-    fetchAgreement();
-  }, [user.email]);
+    if (user?.email) {
+      fetchAgreement();
+    }
+  }, [user]);
 
   return (
-    <div className="p-6">
+    <div className="bg-white p-6 rounded-lg shadow-md">
       <h2 className="text-2xl font-bold mb-6">My Profile</h2>
-      <div className="bg-white p-6 rounded-lg shadow-md">
-        <div className="flex items-center gap-4 mb-6">
-          <img 
-            src={user?.photoURL || "https://i.ibb.co/M1q7YgV/default-user.png"} 
-            alt="Profile" 
-            className="w-20 h-20 rounded-full object-cover"
-          />
-          <div>
-            <h3 className="text-xl font-semibold">{user?.displayName}</h3>
+      
+      <div className="flex flex-col md:flex-row gap-8">
+        <div className="md:w-1/3">
+          <div className="flex flex-col items-center">
+            <img 
+              src={user?.photoURL || '/default-avatar.png'} 
+              alt="Profile" 
+              className="w-32 h-32 rounded-full mb-4"
+            />
+            <h3 className="text-xl font-semibold">{user?.displayName || 'No Name'}</h3>
             <p className="text-gray-600">{user?.email}</p>
           </div>
         </div>
         
-        <div className="space-y-4">
-          <div className="flex justify-between border-b pb-2">
-            <span className="font-medium">Agreement Accept Date:</span>
-            <span>
-              {agreement?.status === 'accepted' 
-                ? new Date(agreement?.acceptDate).toLocaleDateString() 
-                : 'None'}
-            </span>
-          </div>
-          <div className="flex justify-between border-b pb-2">
-            <span className="font-medium">Floor:</span>
-            <span>{agreement?.floor || 'None'}</span>
-          </div>
-          <div className="flex justify-between border-b pb-2">
-            <span className="font-medium">Block:</span>
-            <span>{agreement?.block || 'None'}</span>
-          </div>
-          <div className="flex justify-between border-b pb-2">
-            <span className="font-medium">Room No:</span>
-            <span>{agreement?.roomNo || 'None'}</span>
-          </div>
-          <div className="flex justify-between border-b pb-2">
-            <span className="font-medium">Rent:</span>
-            <span>{agreement?.rent ? `$${agreement.rent}` : 'None'}</span>
+        <div className="md:w-2/3">
+          <div className="space-y-4">
+            <div>
+              <h4 className="font-medium text-gray-700">Agreement Status</h4>
+              <p className="mt-1">
+                {agreement ? 'Accepted' : 'No agreement'}
+              </p>
+            </div>
+            
+            <div>
+              <h4 className="font-medium text-gray-700">Agreement Date</h4>
+              <p className="mt-1">
+                {agreement ? formatDate(agreement.createdAt) : 'None'}
+              </p>
+            </div>
+            
+            <div>
+              <h4 className="font-medium text-gray-700">Rented Apartment</h4>
+              <p className="mt-1">
+                {apartment ? `${apartment.block}-${apartment.apartmentNo}` : 'None'}
+              </p>
+            </div>
+            
+            <div>
+              <h4 className="font-medium text-gray-700">Floor</h4>
+              <p className="mt-1">
+                {apartment ? apartment.floor : 'None'}
+              </p>
+            </div>
+            
+            <div>
+              <h4 className="font-medium text-gray-700">Block</h4>
+              <p className="mt-1">
+                {apartment ? apartment.block : 'None'}
+              </p>
+            </div>
+            
+            <div>
+              <h4 className="font-medium text-gray-700">Room No</h4>
+              <p className="mt-1">
+                {apartment ? apartment.apartmentNo : 'None'}
+              </p>
+            </div>
+            
+            <div>
+              <h4 className="font-medium text-gray-700">Monthly Rent</h4>
+              <p className="mt-1">
+                {apartment ? `$${apartment.rent}` : 'None'}
+              </p>
+            </div>
           </div>
         </div>
       </div>
