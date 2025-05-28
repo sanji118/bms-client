@@ -7,6 +7,7 @@ import { Key } from 'lucide-react';
 import Logo from '../components/Logo';
 import WebsiteName from '../components/WebsiteName';
 import { useEffect } from 'react';
+import { saveUserToDB } from '../utils/saveUserToDB';
 
 const Register = () => {
   const {createUser, signInWithGoogle, user} = useAuth();
@@ -38,31 +39,33 @@ const Register = () => {
       toast.warn('Password must be at least 6 characters and an uppercase and a lowercase!');
       return
     }
-    createUser(email, password)
-      .then(async result =>{
+     createUser(email, password)
+      .then(async result => {
         const user = result.user;
-        return updateProfile(user, {
-            displayName: name,
-            photoURL: photo
-        }).then(()=>{
-            navigate('/')
-            toast.success("Successfully registered!")
-        })
+        await updateProfile(user, {
+          displayName: name,
+          photoURL: photo,
+        });
         
+        await saveUserToDB(user);
+
+        toast.success('Successfully registered!');
+        navigate('/');
       })
-      .catch(error =>{
+      .catch(error => {
         const errorMessage = error.message;
-        console.log(errorMessage);
-      })
+        console.error(errorMessage);
+        toast.error(errorMessage);
+      });
   }
 
   const googleSignIn = () =>{
     signInWithGoogle()
-    .then(result=>{
-      const res = GoogleAuthProvider.credentialFromResult(result);
+    .then( async result=>{
       const user = result.user;
-      toast.success('Successfully registered !')
-      navigate('/')
+      await saveUserToDB(user);
+      toast.success('Successfully registered!');
+      navigate('/');
     })
     .catch(error =>{
       const errorMessage = error.message;

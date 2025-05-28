@@ -3,8 +3,6 @@ import { FaEye, FaEyeSlash } from 'react-icons/fa';
 import { FcGoogle } from 'react-icons/fc';
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { GoogleAuthProvider } from 'firebase/auth';
-import {  Home } from 'lucide-react';
 import { useAuth } from '../hook/useAuth';
 import Lottie from 'lottie-react';
 import loginAnimation from '../assets/Animation - 1748331899107.json'

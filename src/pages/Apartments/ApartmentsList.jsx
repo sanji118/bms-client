@@ -25,7 +25,7 @@ const ApartmentsList = () => {
     }
   }, [user]);
 
-  const handleAgreement = (apartment) => {
+  const handleAgreement =async (apartment) => {
     if (!user) {
       Swal.fire({
         title: 'Login Required',
@@ -38,9 +38,38 @@ const ApartmentsList = () => {
         if (result.isConfirmed) {
           navigate('/login');
         }
+        return;
       });
-      return;
-    }
+      try {
+          const response = await axios.post('http://localhost:5000/agreements', {
+            userName: user.displayName,
+            userEmail: user.email,
+            userId: user.uid,
+            floor: apartment.floor_no,
+            block: apartment.block_name,
+            apartmentNo: apartment.apartment_no,
+            rent: apartment.rent,
+            status: 'pending'
+          });
+
+          if (response.status === 201) {
+            Swal.fire('Success!', 'Agreement request submitted', 'success');
+            // Refresh agreements list
+            const agreementsResponse = await axios.get(
+              `http://localhost:5000/agreements?email=${user.email}`
+            );
+            setUserAgreements(agreementsResponse.data);
+          }
+        } catch (error) {
+          console.error('Agreement error:', error);
+          Swal.fire(
+            'Error', 
+            error.response?.data?.error || 'Failed to submit agreement', 
+            'error'
+          );
+        }
+      };
+    
 
     
     const existingAgreement = userAgreements.find(
