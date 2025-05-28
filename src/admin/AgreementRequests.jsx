@@ -45,7 +45,7 @@ const AgreementRequests = () => {
   if (isLoading) return <div className="text-center py-10 text-lg">Loading agreement requests...</div>;
 
   return (
-    <div className="bg-white p-8 rounded-xl shadow-lg">
+    <div className="bg-white p-8 shadow-lg border-l border-l-fuchsia-400">
       <h2 className="text-3xl font-bold text-gray-800 mb-6">Agreement Requests</h2>
 
       {requests.length === 0 ? (

@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../hook/useAuth';
-import { formatCurrency, getCurrentMonth, getCouponByCode, processPayment, getAgreements } from '../utils';
+import { formatCurrency, getCurrentMonth, processPayment, getAgreements, getCouponById,  } from '../utils';
 import { motion } from 'framer-motion';
 import Swal from 'sweetalert2';
 import { 
@@ -86,8 +86,8 @@ const MakePayment = () => {
     try {
       setLoading(true);
       setError('');
-      const coupon = await getCouponByCode(formData.couponCode);
-      
+      const coupon = await getCouponById(formData.id);
+      console.log(coupon)
       if (!coupon || coupon.status !== 'active') {
         throw new Error('Invalid or inactive coupon');
       }

@@ -1,4 +1,4 @@
-import { createContext, useEffect, useState } from "react";
+import { createContext, useCallback, useEffect, useState } from "react";
 import {
   createUserWithEmailAndPassword,
   GoogleAuthProvider,
@@ -13,6 +13,7 @@ import auth from "../firebase.init";
 import axios from "axios";
 import tokenStorage from "../utils/tokenStorage";
 import axiosInstance from "../utils/axiosInstance";
+import { getUser } from "../utils";
 
 export const AuthContext = createContext(null);
 
@@ -43,6 +44,21 @@ const AuthProvider = ({ children }) => {
     return signOut(auth);
   };
 
+  const refreshUserData = useCallback(async (currentUser) => {
+    try {
+      const fullUser = await getUser(currentUser.email);
+      setUser(prev => ({
+        ...prev,
+        ...currentUser,
+        role: fullUser?.role || 'user',
+      }));
+      return fullUser;
+    } catch (error) {
+      console.error("Failed to refresh user data:", error);
+      return null;
+    }
+  }, []);
+
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
@@ -59,15 +75,12 @@ const AuthProvider = ({ children }) => {
 
           if (data.token) {
             tokenStorage.setToken(data.token);
-            setUser({
-              ...currentUser,
-              role: data.role || 'user', 
-            });
+            await refreshUserData(currentUser);
           }
         } catch (error) {
-          console.error("Failed to get JWT token:", error);
+          console.error("Failed to get JWT or user info:", error);
           tokenStorage.removeToken();
-          setUser(currentUser); 
+          setUser(currentUser);
         }
       } else {
         tokenStorage.removeToken();
@@ -77,7 +90,8 @@ const AuthProvider = ({ children }) => {
     });
 
     return () => unsubscribe();
-  }, []);
+  }, [refreshUserData]);
+
 
 
   const authInfo = {

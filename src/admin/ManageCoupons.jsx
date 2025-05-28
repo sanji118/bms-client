@@ -96,7 +96,7 @@ const ManageCoupons = () => {
   };
 
   return (
-    <div className="p-6">
+    <div className="p-6 bg-white border-l border-l-cyan-500">
       <div className="flex justify-between items-center mb-6">
         <h1 className="text-2xl font-bold text-cyan-500">Manage Coupons</h1>
         <button 

@@ -47,8 +47,8 @@ const ManageMembers = () => {
   };
 
   return (
-    <div className="p-6">
-      <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-yellow-700">
+    <div className="p-6 border-l border-l-lime-300">
+      <h2 className="text-2xl font-bold mb-6 flex items-center gap-2 text-lime-700">
         <User className="text-yellow-700" />
         Manage Members
       </h2>
@@ -58,7 +58,7 @@ const ManageMembers = () => {
       ) : (
         <div className="bg-white rounded-lg shadow-md overflow-hidden">
           <table className="min-w-full">
-            <thead className="bg-pink-100 text-left text-sm text-gray-600">
+            <thead className="bg-lime-100 text-left text-sm text-gray-600">
               <tr>
                 <th className="py-3 px-4">Name</th>
                 <th className="py-3 px-4">Email</th>
@@ -68,7 +68,7 @@ const ManageMembers = () => {
             <tbody>
               {members.length > 0 ? (
                 members.map((member) => (
-                  <tr key={member._id} className="border-t border-t-pink-600 hover:bg-gray-50 transition">
+                  <tr key={member._id} className="border-t border-t-lime-600 hover:bg-lime-50 transition">
                     <td className="py-3 px-4">
                       <div className="flex items-center gap-2">
                         <User className="w-4 h-4 text-gray-500" />

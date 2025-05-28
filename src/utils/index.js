@@ -170,9 +170,9 @@ export const getCoupons = async () => {
   }
 };
 
-export const getCouponByCode = async (code) => {
+export const getCouponById = async (id) => {
   try {
-    const response = await axiosInstance.get(`/coupons/${code}`);
+    const response = await axiosInstance.get(`/coupons/${id}`);
     return response.data;
   } catch (error) {
     console.error("Failed to get coupon:", error);
