@@ -224,10 +224,19 @@ export const deleteCoupon = async (id) => {
 export const getAdminStats = async () => {
   try {
     const response = await axiosInstance.get("/admin/stats");
-    return response.data;
+    
+    if (response.data.success) {
+      return response.data.data;
+    } else {
+      throw new Error("Failed to get valid admin stats data");
+    }
   } catch (error) {
     console.error("Failed to get admin stats:", error);
-    throw error;
+    throw new Error(
+      error.response?.data?.message || 
+      error.message || 
+      "Failed to retrieve admin statistics"
+    );
   }
 };
 
