@@ -1,10 +1,8 @@
-// layouts/DashboardLayout.jsx
+
 import { Outlet } from "react-router-dom";
 import { useAuth } from "../hook/useAuth";
 import { FaHome, FaUser, FaBullhorn, FaMoneyBillWave, FaHistory, FaUsers, FaEnvelope, FaGift, FaSignOutAlt, FaUserShield, FaFileContract } from "react-icons/fa";
 import { NavLink, useNavigate } from "react-router-dom";
-import Logo from "../components/Logo";
-import WebsiteName from "../components/WebsiteName";
 
 const DashboardLayout = () => {
   const { user, logout } = useAuth();
@@ -45,11 +43,6 @@ const DashboardLayout = () => {
     <div className="flex min-h-screen bg-gray-100">
       {/* Sidebar */}
       <div className="w-64 bg-white shadow-md flex flex-col">
-        {/* Logo and Brand */}
-        <div className="p-4 border-b flex items-center justify-center">
-          <Logo />
-          <WebsiteName />
-        </div>
 
         {/* User Info */}
         <div className="p-4 border-b flex items-center gap-3">

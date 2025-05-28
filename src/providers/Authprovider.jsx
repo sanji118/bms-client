@@ -45,29 +45,34 @@ const AuthProvider = ({ children }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
-        // Option 1: Get Firebase ID token
-        const idToken = await getIdToken(currentUser);
 
         try {
-          // Send ID token or email to your backend to get JWT token
+          const idToken = await getIdToken(currentUser);
           const { data } = await axios.post("http://localhost:5000/jwt", {
-            token: idToken,
-            // Or you can send: email: currentUser.email
+           email: currentUser.email,
+           uid: currentUser.uid,
+           name: currentUser.displayName,
+           photoURL: currentUser.photoURL,
+           token: idToken
           });
 
-          tokenStorage.setToken(data.token); // Save JWT in localStorage
-
-          // Optionally attach role fetched from your backend
-          currentUser.role = data.role || "user";
+         if(data.token){
+          tokenStorage.setToken(data.token)
+          setUser({
+            ...currentUser,
+            role: data.role || 'user'
+          })
+         }
         } catch (error) {
           console.error("Failed to get JWT token:", error);
           tokenStorage.removeToken();
+          setUser(currentUser);
         }
       } else {
         // No user signed in
         tokenStorage.removeToken();
+        setUser(null);
       }
-      setUser(currentUser);
       setLoading(false);
     });
 
