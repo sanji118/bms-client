@@ -30,6 +30,35 @@ export const getUser = async (email) => {
     throw error;
   }
 };
+export const getUsers = async () => {
+  try {
+    const response = await axiosInstance.get("/users");
+    return response.data;
+  } catch (error) {
+    console.error("Failed to get users:", error);
+    throw error;
+  }
+};
+
+export const promoteToAdmin = async (id) => {
+  try {
+    const response = await axiosInstance.patch(`/users/admin/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to promote user:", error);
+    throw error;
+  }
+};
+
+export const demoteToUser = async (id) => {
+  try {
+    const response = await axiosInstance.patch(`/users/user/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to demote user:", error);
+    throw error;
+  }
+};
 
 export const updateUserRole = async (id, role) => {
   try {
@@ -74,6 +103,7 @@ export const checkMember = async (email) => {
 };
 
 // Apartment related functions
+
 export const getApartments = async () => {
   try {
     const response = await axiosInstance.get("/apartments");
@@ -135,7 +165,7 @@ export const getCoupons = async () => {
   }
 };
 
-export const getCoupon = async (id) => {
+export const getCouponById = async (id) => {
   try {
     const response = await axiosInstance.get(`/coupons/${id}`);
     return response.data;

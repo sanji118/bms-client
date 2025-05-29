@@ -23,6 +23,7 @@ import {
 } from 'react-icons/fa';
 import { GiPayMoney } from 'react-icons/gi';
 import { MdDiscount, MdOutlineApartment } from 'react-icons/md';
+import axiosInstance from '../utils/axiosInstance';
 
 
 const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
@@ -57,7 +58,7 @@ const CheckoutForm = ({
   const processStripePayment = async (paymentData) => {
     try {
       
-      const response = await axios.post('/payments/create-intent', {
+      const response = await axiosInstance.post('/payments/create-intent', {
         amount: finalAmount * 100, 
         currency: 'usd',
         metadata: {
@@ -127,7 +128,7 @@ const CheckoutForm = ({
       const paymentResult = await processStripePayment(paymentData);
       
       // Save payment to database
-      const savedPayment = await axios.post('/payments', {
+      const savedPayment = await axiosInstance.post('/payments', {
         ...paymentData,
         transactionId: paymentResult.transactionId,
         paymentMethod: paymentResult.paymentMethod,
