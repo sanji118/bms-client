@@ -57,7 +57,7 @@ const CheckoutForm = ({
   const processStripePayment = async (paymentData) => {
     try {
       
-      const response = await axios.post('/api/payments/create-intent', {
+      const response = await axios.post('/payments/create-intent', {
         amount: finalAmount * 100, 
         currency: 'usd',
         metadata: {
@@ -127,7 +127,7 @@ const CheckoutForm = ({
       const paymentResult = await processStripePayment(paymentData);
       
       // Save payment to database
-      const savedPayment = await axios.post('/api/payments', {
+      const savedPayment = await axios.post('/payments', {
         ...paymentData,
         transactionId: paymentResult.transactionId,
         paymentMethod: paymentResult.paymentMethod,
@@ -621,18 +621,24 @@ const MakePayment = () => {
         <CheckoutForm 
           apartment={apartment}
           formData={formData}
+          setFormData={setFormData}
           couponApplied={couponApplied}
+          setCouponApplied={setCouponApplied}
+          discount={discount}
+          setDiscount={setDiscount}
           discountAmount={discountAmount}
+          setDiscountAmount={setDiscountAmount}
           loading={loading}
+          setLoading={setLoading}
           paymentCompleted={paymentCompleted}
           handleChange={handleChange}
           handleApplyCoupon={handleApplyCoupon}
           handleRemoveCoupon={handleRemoveCoupon}
           error={error}
-          success={success}
-          user={user}
           setError={setError}
+          success={success}
           setSuccess={setSuccess}
+          user={user}
           setPaymentCompleted={setPaymentCompleted}
         />
       </Elements>
