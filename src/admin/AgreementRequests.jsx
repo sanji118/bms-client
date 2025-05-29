@@ -10,7 +10,10 @@ const AgreementRequests = () => {
 
   const { data: requests = [], isLoading } = useQuery({
     queryKey: ['agreementRequests'],
-    queryFn: getAgreementRequests
+    queryFn: async()=>{
+      const data = await getAgreementRequests();
+      return data.filter(request=> request.status === 'pending')
+    }
   });
 
   const mutation = useMutation({

@@ -236,6 +236,16 @@ export const getAgreements = async () => {
   }
 };
 
+export const getAgreementRequests = async () => {
+  try {
+    const response = await axiosInstance.get("/agreements");
+    return response.data;
+  } catch (error) {
+    console.error("Failed to get agreements:", error);
+    throw error;
+  }
+};
+
 export const getUserAgreements = async (email) => {
   try {
     const response = await axiosInstance.get(`/agreements/user/${email}`);

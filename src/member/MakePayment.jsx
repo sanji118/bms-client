@@ -26,7 +26,7 @@ import { MdDiscount, MdOutlineApartment } from 'react-icons/md';
 import axiosInstance from '../utils/axiosInstance';
 
 
-const stripePromise = loadStripe(process.env.REACT_APP_STRIPE_PUBLISHABLE_KEY);
+const stripePromise = loadStripe(import.meta.env.VITE_STRIPE_PUBLISHABLE_KEY);
 
 const CheckoutForm = ({ 
   apartment, 
