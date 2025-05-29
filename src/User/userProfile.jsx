@@ -17,11 +17,35 @@ import {
   FiKey,
 } from "react-icons/fi";
 import { PulseLoader } from "react-spinners";
+import { useNavigate } from "react-router-dom";
 
 const UserProfile = () => {
-  const { user, agreement } = useAuth(); // Get agreement from auth context
+  const navigate = useNavigate()
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [agreement, setAgreement] = useState(null);
+
+  useEffect(() => {
+    const fetchAgreement = async () => {
+      if (!user?.email) return;
+      
+      try {
+        setLoading(true);
+        setError(null);
+        const agreements = await getAgreements(user.email);
+        
+        setAgreement(agreements.length > 0 ? agreements[0] : null);
+      } catch (err) {
+        console.error("Failed to fetch agreements:", err);
+        setError("Failed to load agreement data. Please try again later.");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchAgreement();
+  }, [user?.email]);
 
   const hasAgreement = agreement && agreement.status === "accepted";
 
@@ -40,7 +64,7 @@ const UserProfile = () => {
   };
 
   const handleApplyForApartment = () => {
-    console.log("Navigate to apartment application");
+    navigate('/apartments')
   };
 
   return (
@@ -180,17 +204,21 @@ const UserProfile = () => {
           <div className="p-10 text-center">
             <div className="bg-yellow-50 rounded-xl p-8 max-w-md mx-auto border border-yellow-100">
               <FiHome className="text-yellow-400 text-5xl mx-auto mb-4" />
-              <h4 className="text-xl font-semibold text-gray-800 mb-2">No Agreement Found</h4>
+              <h4 className="text-xl font-semibold text-gray-800 mb-2">
+                {agreement ? "Agreement Pending Approval" : "No Agreement Found"}
+              </h4>
               <p className="text-gray-500 mb-4">
-                {user?.role === "member" 
-                  ? "Your agreement details will appear here once approved."
-                  : "You don't have any apartment agreements yet."}
+                {agreement 
+                  ? "Your agreement is being reviewed. You'll be notified once it's approved."
+                  : user?.role === "member" 
+                    ? "Your agreement details will appear here once approved."
+                    : "You don't have any apartment agreements yet."}
               </p>
               <button
                 onClick={handleApplyForApartment}
                 className="mt-4 bg-yellow-500 hover:bg-yellow-600 text-white font-medium py-2 px-6 rounded-lg transition duration-200"
               >
-                {user?.role === "member" ? "View Application Status" : "Apply for an Apartment"}
+                Apply for an Apartment
               </button>
             </div>
           </div>

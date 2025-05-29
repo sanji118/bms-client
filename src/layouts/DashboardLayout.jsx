@@ -5,11 +5,11 @@ import { NavLink, useNavigate } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 const DashboardLayout = () => {
-  const { user, logout, refreshUserData } = useAuth(); // Make sure refreshUserData is available
+  const { user, logout, refreshUserData } = useAuth(); 
   const navigate = useNavigate();
   const [loading, setLoading] = useState(true);
 
-  // Add this useEffect to handle role changes
+
   useEffect(() => {
     if (user) {
       setLoading(false);

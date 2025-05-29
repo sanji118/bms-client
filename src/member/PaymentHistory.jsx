@@ -102,9 +102,9 @@ const PaymentHistory = () => {
                     <div className="text-sm font-semibold text-gray-900">{formatCurrency(payment.amount)}</div>
                   </td>
                   <td className="px-6 py-4 whitespace-nowrap">
-                    {payment.discountPercentage ? (
+                    {payment.discountAmount ? (
                       <span className="px-3 py-1 inline-flex text-xs leading-5 font-semibold rounded-full bg-green-100 text-green-800">
-                        {payment.discountPercentage}% OFF
+                        {payment.discountAmount}% OFF
                       </span>
                     ) : (
                       <span className="text-gray-500 text-sm">None</span>
