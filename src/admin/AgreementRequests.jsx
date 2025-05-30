@@ -1,7 +1,7 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import Swal from 'sweetalert2';
 import { FaCheck, FaTimes } from 'react-icons/fa';
-import { formatDate, getAgreementRequests, updateAgreementStatus } from '../utils';
+import { getAgreementRequests, updateAgreementStatus } from '../utils/useAgreement';
 import { useAuth } from '../hook/useAuth';
 
 const AgreementRequests = () => {

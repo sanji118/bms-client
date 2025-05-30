@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { getCoupons, createCoupon, updateCouponStatus, deleteCoupon } from '../utils';
+import { getCoupons, createCoupon, updateCouponStatus, deleteCoupon } from '../utils/useCoupon';
 import { FiPlus, FiTrash2, FiEdit, FiCheck, FiX } from 'react-icons/fi';
 import { FaPercentage, FaDollarSign } from 'react-icons/fa';
 import Swal from 'sweetalert2';

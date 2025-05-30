@@ -1,8 +1,9 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../hook/useAuth';
-import { formatCurrency, formatDate, getPayments } from '../utils';
+import { formatCurrency, formatDate, } from '../utils';
 import { FiDollarSign, FiCalendar, FiCheckCircle, FiClock, FiAward, FiCreditCard } from 'react-icons/fi';
 import { FaRegSadTear } from 'react-icons/fa';
+import { getPayments } from '../utils/usePayment';
 
 const PaymentHistory = () => {
   const { user } = useAuth();

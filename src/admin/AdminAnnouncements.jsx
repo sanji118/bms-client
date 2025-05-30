@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
-import { formatDate, getAnnouncements, updateAnnouncement, deleteAnnouncement } from '../utils';
+import { getAnnouncements, updateAnnouncement, deleteAnnouncement } from '../utils/useAnnouncements';
+import{ formatDate,} from '../utils'
 import { Megaphone, Trash2, Pencil } from 'lucide-react';
 import Swal from 'sweetalert2';
 import withReactContent from 'sweetalert2-react-content';

@@ -1,6 +1,6 @@
 import { useState } from "react";
 import Swal from "sweetalert2";
-import { createAnnouncement } from "../utils";
+import { createAnnouncement } from "../utils/useAnnouncements";
 import { MdCampaign } from "react-icons/md";
 
 const MakeAnnouncement = () => {

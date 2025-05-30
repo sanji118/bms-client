@@ -1,11 +1,12 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hook/useAuth';
 import { useEffect, useState } from 'react';
-import { createAgreement, getApartments, getUserAgreements } from '../../utils';
+import { createAgreement, getUserAgreements } from '../../utils/useAgreement';
 import Swal from 'sweetalert2';
 import RequestAgreement from '../../member/RequestAgreement';
 import { useQuery } from '@tanstack/react-query';
 import { LoaderPinwheelIcon } from 'lucide-react';
+import { getApartments } from '../../utils/useApartment';
 
 const ApartmentsList = () => {
   const { data: apartments = [], isLoading, error } = useQuery({

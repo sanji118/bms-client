@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
-import { formatDate, getAnnouncements } from '../utils';
+import { formatDate } from '../utils';
 import { Megaphone } from 'lucide-react';
+import { getAnnouncements } from '../utils/useAnnouncements';
 
 const UserAnnouncements = () => {
   const [announcements, setAnnouncements] = useState([]);

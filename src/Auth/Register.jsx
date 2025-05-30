@@ -1,6 +1,6 @@
 import { Link, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { GoogleAuthProvider, updateProfile } from 'firebase/auth';
+import { updateProfile } from 'firebase/auth';
 import { FaGoogle } from 'react-icons/fa';
 import { useAuth } from '../hook/useAuth';
 import { Key } from 'lucide-react';

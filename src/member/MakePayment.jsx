@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useAuth } from '../hook/useAuth';
-import { formatCurrency, getCurrentMonth, getAgreements, getCouponById, getCoupons } from '../utils';
+import { formatCurrency, getCurrentMonth } from '../utils';
 import { motion } from 'framer-motion';
 import Swal from 'sweetalert2';
 import { 
@@ -21,6 +21,7 @@ import {
 import { GiPayMoney } from 'react-icons/gi';
 import { MdDiscount, MdOutlineApartment } from 'react-icons/md';
 import axiosInstance from '../utils/axiosInstance';
+import { getUserAgreements } from '../utils/useAgreement';
 
 const MakePayment = () => {
   const { user } = useAuth();
@@ -45,7 +46,7 @@ const MakePayment = () => {
     const fetchApartmentData = async () => {
       try {
         setFetchingData(true);
-        const response = await getAgreements(user.email);
+        const response = await getUserAgreements(user.email);
         if (response && response.length > 0) {
           const activeAgreement = response.find(agreement => agreement.status === 'accepted');
           if (activeAgreement) {

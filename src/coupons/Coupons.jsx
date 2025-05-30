@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
-import { getCoupons } from '../utils';
+import { getCoupons } from '../utils/useCoupon';
 import CouponCard from './CouponCard';
 
 const Coupons = () => {
