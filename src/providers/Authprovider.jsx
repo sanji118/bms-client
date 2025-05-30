@@ -41,28 +41,27 @@ const AuthProvider = ({ children }) => {
   };
 
   useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, currentUser => {
+    const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
+      if (currentUser) {
+        const token = tokenStorage.getToken();
+        if (token) {
+          try {
+            // Verify token expiration
+            const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
             setUser(currentUser);
-            if (currentUser) {
-              const userInfo = { email: currentUser.email };
-              axiosInstance.post('/jwt', userInfo)
-                .then(res => {
-                  if (res.data.token) {
-                    tokenStorage.setToken(res.data.token);
-                    setLoading(false);
-                  }
-                })
+          } catch (err) {
+            if (err.name === 'TokenExpiredError') {
+              // Handle token refresh here
+              const newToken = await refreshToken(currentUser.email);
+              tokenStorage.setToken(newToken);
             }
-            else {
-              tokenStorage.removeToken()
-              setLoading(false);
-            }
-            
-        });
-        return () => {
-            return unsubscribe();
+          }
         }
-    }, [axiosInstance])
+      }
+      setLoading(false);
+    });
+    return unsubscribe;
+  }, []);
 
   const authInfo = {
     user,

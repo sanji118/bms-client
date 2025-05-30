@@ -107,10 +107,13 @@ export const checkMember = async (email) => {
 export const getApartments = async () => {
   try {
     const response = await axiosInstance.get("/apartments");
+    if (response.status !== 200) {
+      throw new Error('Failed to fetch apartments');
+    }
     return response.data;
   } catch (error) {
-    console.error("Failed to get apartments:", error);
-    throw error;
+    console.error("API Error:", error);
+    throw new Error(error.response?.data?.message || 'Network error');
   }
 };
 
