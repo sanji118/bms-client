@@ -7,7 +7,7 @@ import { Key } from 'lucide-react';
 import Logo from '../components/Logo';
 import WebsiteName from '../components/WebsiteName';
 import { useEffect } from 'react';
-import { saveUserToDB } from '../utils';
+import { saveUserToDB } from '../utils/useUser';
 
 const Register = () => {
   const {createUser, signInWithGoogle, user} = useAuth();

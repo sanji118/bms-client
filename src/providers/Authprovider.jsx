@@ -10,6 +10,7 @@ import {
 import auth from "../firebase.init";
 import tokenStorage from "../utils/tokenStorage";
 import axiosInstance from "../utils/axiosInstance";
+import { getUser } from "../utils/useUser";
 
 export const AuthContext = createContext(null);
 
@@ -43,25 +44,54 @@ const AuthProvider = ({ children }) => {
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, async (currentUser) => {
       if (currentUser) {
-        const token = tokenStorage.getToken();
-        if (token) {
-          try {
-            // Verify token expiration
-            const decoded = jwt.verify(token, process.env.ACCESS_TOKEN_SECRET);
-            setUser(currentUser);
-          } catch (err) {
-            if (err.name === 'TokenExpiredError') {
-              // Handle token refresh here
-              const newToken = await refreshToken(currentUser.email);
-              tokenStorage.setToken(newToken);
+        try {
+          const userInfo = { email: currentUser.email };
+          const jwtRes = await axiosInstance.post("/jwt", userInfo);
+
+          if (jwtRes.data.token) {
+            tokenStorage.setToken(jwtRes.data.token);
+
+            let userData;
+
+            try {
+              const userRes = await getUser(currentUser.email);
+              userData = userRes;
+            } catch (error) {
+              if (error.response?.status === 404) {
+                // Create new user as default "user"
+                const createRes = await axiosInstance.post("/users", {
+                  email: currentUser.email,
+                  name: currentUser.displayName,
+                  role: "user", // default
+                  photo: currentUser.photoURL,
+                });
+                userData = createRes.data;
+              } else {
+                throw error;
+              }
             }
+
+            const fullUser = { ...currentUser, role: userData.role || "user" };
+            setUser(fullUser);
           }
+        } catch (err) {
+          console.error("Auth setup error:", err);
+          setUser(null);
+          tokenStorage.removeToken();
+        } finally {
+          setLoading(false);
         }
+      } else {
+        setUser(null);
+        tokenStorage.removeToken();
+        setLoading(false);
       }
-      setLoading(false);
     });
-    return unsubscribe;
+
+    return () => unsubscribe();
   }, []);
+
+
 
   const authInfo = {
     user,

@@ -1,7 +1,7 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hook/useAuth';
 import { useEffect, useState } from 'react';
-import { createAgreement, getAgreements, getApartments } from '../../utils';
+import { createAgreement, getApartments, getUserAgreements } from '../../utils';
 import Swal from 'sweetalert2';
 import RequestAgreement from '../../member/RequestAgreement';
 import { useQuery } from '@tanstack/react-query';
@@ -40,7 +40,7 @@ const ApartmentsList = () => {
   useEffect(() => {
     const fetchAgreements = async () => {
       if (user?.email) {
-        const res = await getAgreements(user.email);
+        const res = await getUserAgreements(user.email);
         setUserAgreements(res);
       }
     };
@@ -108,7 +108,7 @@ const ApartmentsList = () => {
 
       await createAgreement(agreementData);
       Swal.fire('Success!', 'Agreement request submitted.', 'success');
-      const updated = await getAgreements(user.email);
+      const updated = await getUserAgreements(user.email);
       setUserAgreements(updated);
       setShowAgreementModal(false);
     } catch (error) {

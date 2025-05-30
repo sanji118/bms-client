@@ -8,7 +8,7 @@ import Lottie from 'lottie-react';
 import loginAnimation from '../assets/Animation - 1748331899107.json'
 import Logo from '../components/Logo';
 import WebsiteName from '../components/WebsiteName';
-import { saveUserToDB } from '../utils';
+import { saveUserToDB } from '../utils/useUser';
 
 const Login = () => {
     const [users, setUsers] = useState(null);

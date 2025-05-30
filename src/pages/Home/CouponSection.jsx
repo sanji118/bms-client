@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { motion } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
-import { getCoupons } from '../../utils';
+import { getCoupons } from '../../utils/useCoupon';
 import CouponCard from '../../coupons/CouponCard';
 
 const CouponSection = () => {

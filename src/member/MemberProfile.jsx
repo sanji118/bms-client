@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../hook/useAuth';
-import { formatDate, formatCurrency, getAgreements, getApartment } from '../utils';
+import { formatDate, formatCurrency,  } from '../utils';
 import { FaBuilding, FaUserCheck, FaCalendarAlt, FaMoneyBillWave, FaLayerGroup } from 'react-icons/fa';
 
 const MemberProfile = () => {
@@ -11,7 +11,7 @@ const MemberProfile = () => {
   useEffect(() => {
     const fetchAgreement = async () => {
       try {
-        const agreements = await getAgreements(user.email);
+        const agreements = await getUserAgreements(user.email);
         if (agreements.length > 0) {
           const firstAgreement = agreements[0];
           setAgreement(firstAgreement);

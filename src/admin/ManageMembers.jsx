@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import Swal from "sweetalert2";
 import { useQuery } from "@tanstack/react-query";
-import { getUsers, updateUserRole } from "../utils";
+import { getUsers, updateUserRole } from "../utils/useUser";
 import { User, Mail, Trash2 } from "lucide-react";
 
 const ManageMembers = () => {

@@ -65,7 +65,7 @@ const DashboardLayout = () => {
         <div className="p-4 border-b flex items-center gap-3">
           <div className="w-10 h-10 rounded-full bg-gray-200 flex items-center justify-center overflow-hidden">
             <img
-              src={user?.photoURL || "https://i.ibb.co/M1q7YgV/default-user.png"}
+              src={user?.photoURL || "https://i.postimg.cc/ZKHL4BgN/3d-rendering-kawaii-summer-icon-23-2150528405.avif"}
               alt="Profile"
               className="w-full h-full object-cover"
             />
@@ -75,6 +75,7 @@ const DashboardLayout = () => {
             <p className="text-xs text-gray-500 capitalize">{user?.role || "user"}</p>
           </div>
         </div>
+        
 
         {/* Navigation Links */}
         <div className="flex-1 overflow-y-auto py-2">
