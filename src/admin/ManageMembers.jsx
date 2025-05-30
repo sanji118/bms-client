@@ -36,7 +36,7 @@ const ManageMembers = () => {
     if (result.isConfirmed) {
       try {
         await updateUserRole(userId, "user");
-        refetch(); // Refresh the data after update
+        refetch(); 
         Swal.fire("Removed!", "The member has been demoted to user.", "success");
       } catch (error) {
         console.error("Failed to update user role:", error);

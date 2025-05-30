@@ -1,6 +1,7 @@
 import { FiTrash2 } from 'react-icons/fi';
 import { FaPercentage, FaDollarSign } from 'react-icons/fa';
 import Swal from 'sweetalert2';
+import { formatDate } from '../utils';
 
 const CouponsTable = ({ coupons, handleStatusChange, handleDelete }) => {
   return (
@@ -40,7 +41,7 @@ const CouponsTable = ({ coupons, handleStatusChange, handleDelete }) => {
                 </span>
               </td>
               <td>
-                {new Date(coupon.validFrom).toLocaleDateString()} to {new Date(coupon.expiryDate).toLocaleDateString()}
+                {formatDate(coupon.createdAt)} to {formatDate(coupon.expiryDate)}
               </td>
               <td>{coupon.minAmount ? `$${coupon.minAmount}` : 'None'}</td>
               <td>

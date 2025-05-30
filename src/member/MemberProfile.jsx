@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react';
 import { useAuth } from '../hook/useAuth';
 import { formatDate, formatCurrency,  } from '../utils';
+import { getUserAgreements } from '../utils/useAgreement';
+import { getApartment } from '../utils/useApartment';
 import { FaBuilding, FaUserCheck, FaCalendarAlt, FaMoneyBillWave, FaLayerGroup } from 'react-icons/fa';
 
 const MemberProfile = () => {

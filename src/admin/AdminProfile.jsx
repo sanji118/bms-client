@@ -1,45 +1,58 @@
-import React, { useEffect, useState } from 'react';
+import React from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { getAdminStats } from '../utils';
+import { checkAdmin } from '../utils/useUser';
 import { useAuth } from '../hook/useAuth';
 import { Bed, Check, Home, Users, UserRound, BarChart4, Loader2, AlertCircle } from 'lucide-react';
 import StatCard from '../components/StatCard';
 
 const AdminProfile = () => {
   const { user } = useAuth();
-  const [stats, setStats] = useState(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
 
-  useEffect(() => {
-    const fetchStats = async () => {
-      try {
-        const data = await getAdminStats();
-        setStats(data);
-      } catch (err) {
-        setError(err.message || 'Failed to load statistics');
-      } finally {
-        setLoading(false);
-      }
-    };
+  // Check admin status
+  const { data: isAdmin, isLoading: isAdminLoading, error: adminError } = useQuery({
+    queryKey: ['adminCheck', user?.email],
+    queryFn: () => checkAdmin(user?.email),
+    enabled: !!user?.email,
+  });
+  
 
-    fetchStats();
-  }, []);
+  // Fetch admin stats
+  const { data: stats, isLoading: statsLoading, error: statsError } = useQuery({
+    queryKey: ['adminStats'],
+    queryFn: getAdminStats,
+    enabled: isAdmin, 
+  });
 
-  if (loading) return (
-    <div className="flex justify-center items-center h-screen">
-      <Loader2 className="w-12 h-12 text-primary animate-spin" />
-    </div>
-  );
-
-  if (error) return (
-    <div className="flex justify-center items-center h-screen">
-      <div className="alert alert-error shadow-lg max-w-2xl animate-fade-in">
-        <AlertCircle className="w-6 h-6" />
-        <span>Error: {error}</span>
+  if (isAdminLoading || statsLoading) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <Loader2 className="w-12 h-12 text-primary animate-spin" />
       </div>
-    </div>
-  );
-  console.log(stats)
+    );
+  }
+
+  if (adminError || !isAdmin) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="alert alert-error shadow-lg max-w-2xl animate-fade-in">
+          <AlertCircle className="w-6 h-6" />
+          <span>Error: {adminError?.message || 'You do not have admin privileges'}</span>
+        </div>
+      </div>
+    );
+  }
+
+  if (statsError) {
+    return (
+      <div className="flex justify-center items-center h-screen">
+        <div className="alert alert-error shadow-lg max-w-2xl animate-fade-in">
+          <AlertCircle className="w-6 h-6" />
+          <span>Error: {statsError.message || 'Failed to load statistics'}</span>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="container mx-auto px-4 py-8">
