@@ -118,7 +118,7 @@ const MakePayment = () => {
         throw new Error('This coupon is not yet valid');
       }
 
-      if (fullCoupon.validUntil && new Date(fullCoupon.validUntil) < currentDate) {
+      if (fullCoupon.expiryDate && new Date(fullCoupon.expiryDate) < currentDate) {
         throw new Error('This coupon has expired');
       }
 
