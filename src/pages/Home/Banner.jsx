@@ -30,9 +30,9 @@ const Banner = () => {
   ];
 
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [direction, setDirection] = useState(1); // 1 for forward, -1 for backward
+  const [direction, setDirection] = useState(1); 
 
-  // Auto-rotate banners every 5 seconds
+  
   useEffect(() => {
     const interval = setInterval(() => {
       setDirection(1);
@@ -41,13 +41,13 @@ const Banner = () => {
     return () => clearInterval(interval);
   }, [bannerImages.length]);
 
-  // Manual navigation
+  
   const goToSlide = (index) => {
     setDirection(index > currentIndex ? 1 : -1);
     setCurrentIndex(index);
   };
 
-  // Animation variants
+  
   const variants = {
     enter: (direction) => ({
       x: direction > 0 ? 1000 : -1000,

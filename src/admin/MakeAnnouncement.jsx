@@ -25,7 +25,7 @@ const MakeAnnouncement = () => {
       setTitle("");
       setDescription("");
     } catch (error) {
-      console.error("Failed to create announcement:", error);
+      // //console.error("Failed to create announcement:", error);
       Swal.fire(
         "Error!",
         error.response?.data?.message || "Failed to publish announcement.",

@@ -5,7 +5,7 @@ export const getAgreements = async () => {
     const response = await axiosInstance.get("/agreements");
     return response.data;
   } catch (error) {
-    console.error("Failed to get agreements:", error);
+    // //console.error("Failed to get agreements:", error);
     throw error;
   }
 };
@@ -15,7 +15,7 @@ export const getAgreementRequests = async () => {
     const response = await axiosInstance.get("/agreements");
     return response.data;
   } catch (error) {
-    console.error("Failed to get agreements:", error);
+    //console.error("Failed to get agreements:", error);
     throw error;
   }
 };
@@ -25,7 +25,7 @@ export const getUserAgreements = async (email) => {
     const response = await axiosInstance.get(`/agreements/user/${email}`);
     return response.data;
   } catch (error) {
-    console.error("Failed to get user agreements:", error);
+    //console.error("Failed to get user agreements:", error);
     throw error;
   }
 };
@@ -35,7 +35,7 @@ export const createAgreement = async (agreementData) => {
     const response = await axiosInstance.post("/agreements", agreementData);
     return response.data;
   } catch (error) {
-    console.error("Failed to create agreement:", error);
+    //console.error("Failed to create agreement:", error);
     throw error;
   }
 };
@@ -45,18 +45,18 @@ export const updateAgreementStatus = async (id, status) => {
     const response = await axiosInstance.patch(`/agreements/${id}`, { status });
     return response.data;
   } catch (error) {
-    console.error("Failed to update agreement status:", error);
+    //console.error("Failed to update agreement status:", error);
     throw error;
   }
 };
 
-// Add this to your useAgreement.js or similar frontend API file
+
 export const deleteAgreement = async (id) => {
   try {
     const response = await axiosInstance.delete(`/agreements/${id}`);
     return response.data;
   } catch (error) {
-    console.error("Failed to delete agreement:", error);
+    //console.error("Failed to delete agreement:", error);
     throw error;
   }
 };

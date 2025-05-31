@@ -19,7 +19,7 @@ const CouponFormModal = ({
   const handleInputChange = (e) => {
     const { name, value, type, checked } = e.target;
     
-    // Validate coupon code in real-time
+    
     if (name === 'code') {
       const isValid = /^[A-Z0-9]+$/.test(value);
       setIsCodeValid(isValid || value === '');

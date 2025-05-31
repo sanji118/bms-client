@@ -1,4 +1,4 @@
-// EditCouponModal.jsx
+
 import { FiX } from "react-icons/fi";
 import { motion } from "framer-motion";
 

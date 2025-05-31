@@ -11,6 +11,11 @@ import { motion } from 'framer-motion';
 import EditApartmentModal from './EditApartmentModal';
 
 const ApartmentsList = () => {
+  const queryClient = useQueryClient();
+  const { user } = useAuth();
+  const navigate = useNavigate();
+
+  
   const { data: apartments = [], isLoading, error } = useQuery({
     queryKey: ['apartments'],
     queryFn: getApartments,
@@ -18,12 +23,22 @@ const ApartmentsList = () => {
     refetchOnWindowFocus: false
   });
 
-  const { user } = useAuth();
+  
+  const { 
+    data: userAgreements = [], 
+    isLoading: agreementsLoading,
+    refetch: refetchAgreements
+  } = useQuery({
+    queryKey: ['userAgreements', user?.email],
+    queryFn: () => user?.email ? getUserAgreements(user.email) : [],
+    enabled: !!user?.email,
+    staleTime: 5 * 60 * 1000
+  });
+
   const [filtered, setFiltered] = useState([]);
   const [currentPage, setCurrentPage] = useState(1);
   const [minRent, setMinRent] = useState('');
   const [maxRent, setMaxRent] = useState('');
-  const [userAgreements, setUserAgreements] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showAgreementModal, setShowAgreementModal] = useState(false);
   const [showEditModal, setShowEditModal] = useState(false);
@@ -35,9 +50,8 @@ const ApartmentsList = () => {
     specialRequests: ''
   });
   const apartmentsPerPage = 6;
-  const navigate = useNavigate();
 
-  // Delete apartment mutation
+  
   const deleteApartmentMutation = useMutation({
     mutationFn: deleteApartment,
     onSuccess: () => {
@@ -63,10 +77,11 @@ const ApartmentsList = () => {
     }
   });
 
-  // Delete agreement mutation
+  
   const deleteAgreementMutation = useMutation({
     mutationFn: deleteAgreement,
     onSuccess: () => {
+      queryClient.invalidateQueries(['userAgreements']);
       Swal.fire({
         title: 'Success!',
         text: 'Agreement request deleted',
@@ -75,10 +90,6 @@ const ApartmentsList = () => {
         color: '#fff',
         confirmButtonColor: '#3b82f6'
       });
-      return getUserAgreements(user.email);
-    },
-    onSuccess: (updatedAgreements) => {
-      setUserAgreements(updatedAgreements);
     },
     onError: (error) => {
       Swal.fire({
@@ -95,16 +106,6 @@ const ApartmentsList = () => {
   useEffect(() => {
     if (apartments.length) setFiltered(apartments);
   }, [apartments]);
-
-  useEffect(() => {
-    const fetchAgreements = async () => {
-      if (user?.email) {
-        const res = await getUserAgreements(user.email);
-        setUserAgreements(res);
-      }
-    };
-    fetchAgreements();
-  }, [user]);
 
   const handleDeleteApartment = (id) => {
     Swal.fire({
@@ -244,6 +245,7 @@ const ApartmentsList = () => {
       };
 
       await createAgreement(agreementData);
+      await refetchAgreements();
       Swal.fire({
         title: 'Success!',
         text: 'Agreement request submitted.',
@@ -252,8 +254,6 @@ const ApartmentsList = () => {
         color: '#fff',
         confirmButtonColor: '#3b82f6'
       });
-      const updated = await getUserAgreements(user.email);
-      setUserAgreements(updated);
       setShowAgreementModal(false);
     } catch (error) {
       Swal.fire({
@@ -270,6 +270,15 @@ const ApartmentsList = () => {
   };
 
   const getButtonState = (apt) => {
+    if (agreementsLoading) {
+      return {
+        text: 'Loading...',
+        className: 'btn btn-ghost btn-block',
+        disabled: true,
+        icon: <LoaderPinwheelIcon className="w-5 h-5 mr-2 animate-spin" />
+      };
+    }
+
     if (apt.status === 'unavailable') {
       return { 
         text: 'Unavailable', 
@@ -304,7 +313,7 @@ const ApartmentsList = () => {
       return { 
         text: exist.status.charAt(0).toUpperCase() + exist.status.slice(1), 
         className: `btn ${btnStyle} btn-block text-white shadow-lg hover:shadow-${btnStyle}/50`, 
-        disabled: exist.status !== 'pending', // Only allow delete for pending requests
+        disabled: exist.status !== 'pending',
         tooltip: exist.status,
         icon,
         agreementId: exist._id,

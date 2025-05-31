@@ -37,7 +37,7 @@ const Login = () => {
     .catch(error =>{
       const errorMessage = error.message;
       toast.error(errorMessage);
-      console.log(errorMessage);
+    //   //console.log(errorMessage);
     })
   }
   
@@ -52,7 +52,7 @@ const Login = () => {
     }
     catch{error =>{
       const errorMessage = error.message;
-       console.error(errorMessage, error)
+    //    //console.error(errorMessage, error)
     }}
   }
 

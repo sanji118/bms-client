@@ -33,7 +33,7 @@ const MemberProfile = () => {
           }
         }
       } catch (error) {
-        console.error('Error fetching agreement or apartment:', error);
+        // //console.error('Error fetching agreement or apartment:', error);
       }
     };
 

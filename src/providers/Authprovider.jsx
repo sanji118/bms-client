@@ -58,11 +58,11 @@ const AuthProvider = ({ children }) => {
               userData = userRes;
             } catch (error) {
               if (error.response?.status === 404) {
-                // Create new user as default "user"
+                
                 const createRes = await axiosInstance.post("/users", {
                   email: currentUser.email,
                   name: currentUser.displayName,
-                  role: "user", // default
+                  role: "user", 
                   photo: currentUser.photoURL,
                 });
                 userData = createRes.data;
@@ -75,7 +75,7 @@ const AuthProvider = ({ children }) => {
             setUser(fullUser);
           }
         } catch (err) {
-          console.error("Auth setup error:", err);
+          // //console.error("Auth setup error:", err);
           setUser(null);
           tokenStorage.removeToken();
         } finally {

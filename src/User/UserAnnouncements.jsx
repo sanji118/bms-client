@@ -13,7 +13,7 @@ const UserAnnouncements = () => {
         const data = await getAnnouncements();
         setAnnouncements(data);
       } catch (error) {
-        console.error('Error fetching announcements:', error);
+        // //console.error('Error fetching announcements:', error);
       } finally {
         setLoading(false);
       }

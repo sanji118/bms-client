@@ -7,7 +7,7 @@ export const getAdminStats = async () => {
     const response = await axiosInstance.get("/admin-stats");
     return response.data;
   } catch (error) {
-    console.error("Failed to get admin stats:", error);
+    // //console.error("Failed to get admin stats:", error);
     throw error;
   }
 };

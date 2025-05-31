@@ -54,7 +54,7 @@ const Register = () => {
       })
       .catch(error => {
         const errorMessage = error.message;
-        console.error(errorMessage);
+        // //console.error(errorMessage);
         toast.error(errorMessage);
       });
   }
@@ -69,7 +69,7 @@ const Register = () => {
     })
     .catch(error =>{
       const errorMessage = error.message;
-      console.log(errorMessage)
+      // //console.log(errorMessage)
     })
   }
   return (

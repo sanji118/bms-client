@@ -10,7 +10,7 @@ const ApartmentLocation = () => {
   useEffect(() => {
     axios.get('http://localhost:5000/apartments')
       .then(res => setApartments(res.data))
-      .catch(err => console.error(err));
+      .catch(err => //console.error(err));
   }, []);
 
   const customIcon = new Icon({

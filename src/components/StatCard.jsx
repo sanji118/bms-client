@@ -1,7 +1,7 @@
 import React from 'react';
 
 const StatCard = ({ title, value, icon, color }) => {
-  // Define color mappings to ensure Tailwind includes these classes
+   
   const colorClasses = {
     primary: 'bg-primary text-primary-content',
     secondary: 'bg-secondary text-secondary-content',
@@ -12,7 +12,7 @@ const StatCard = ({ title, value, icon, color }) => {
     info: 'bg-info text-info-content',
   };
 
-  // Get the appropriate classes based on the color prop
+  
   const classes = colorClasses[color] || 'bg-primary text-primary-content';
 
   return (

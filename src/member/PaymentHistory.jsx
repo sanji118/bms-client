@@ -16,7 +16,7 @@ const PaymentHistory = () => {
         const data = await getUserPayments(user.email);
         setPayments(data);
       } catch (error) {
-        console.error('Error fetching payments:', error);
+        // //console.error('Error fetching payments:', error);
       } finally {
         setLoading(false);
       }

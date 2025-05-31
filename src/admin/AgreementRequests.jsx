@@ -18,21 +18,21 @@ const AgreementRequests = () => {
 
   const mutation = useMutation({
     mutationFn: async ({ id, status, apartmentId }) => {
-      // First update the agreement status
+      
       await updateAgreementStatus(id, status);
       
-      // If accepted, update the apartment status to 'unavailable'
+      
       if (status === 'accepted' && apartmentId) {
         await updateApartment(apartmentId, { status: 'unavailable' });
       }
     },
     onSuccess: () => {
-      // Invalidate both agreement requests and apartments queries
+      
       queryClient.invalidateQueries(['agreementRequests']);
       queryClient.invalidateQueries(['apartments']);
     },
     onError: (error) => {
-      console.error('Error updating agreement:', error);
+      // //console.error('Error updating agreement:', error);
       Swal.fire({
         title: 'Error',
         text: error.message || 'Failed to update agreement status',
@@ -66,7 +66,7 @@ const AgreementRequests = () => {
           showConfirmButton: false,
         });
       } catch (error) {
-        // Error handling is already done in mutation.onError
+        
       }
     }
   };

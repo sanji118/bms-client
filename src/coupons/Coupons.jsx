@@ -68,7 +68,7 @@ const Coupons = () => {
   );
 };
 
-// Reuse the same loading, error, and empty states from CouponSection
+
 const LoadingState = () => (
   <div className="max-w-6xl mx-auto text-center py-20">
     <motion.div

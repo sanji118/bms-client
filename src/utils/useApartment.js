@@ -8,7 +8,7 @@ export const getApartments = async () => {
     }
     return response.data;
   } catch (error) {
-    console.error("API Error:", error);
+    //console.error("API Error:", error);
     throw new Error(error.response?.data?.message || 'Network error');
   }
 };
@@ -18,7 +18,7 @@ export const getApartment = async (id) => {
     const response = await axiosInstance.get(`/apartments/${id}`);
     return response.data;
   } catch (error) {
-    console.error("Failed to get apartment:", error);
+    //console.error("Failed to get apartment:", error);
     throw error;
   }
 };
@@ -28,7 +28,7 @@ export const createApartment = async (apartmentData) => {
     const response = await axiosInstance.post("/apartments", apartmentData);
     return response.data;
   } catch (error) {
-    console.error("Failed to create apartment:", error);
+    //console.error("Failed to create apartment:", error);
     throw error;
   }
 };
@@ -38,7 +38,7 @@ export const updateApartment = async (id, apartmentData) => {
     const response = await axiosInstance.patch(`/apartments/${id}`, apartmentData);
     return response.data;
   } catch (error) {
-    console.error("Failed to update apartment:", error);
+    //console.error("Failed to update apartment:", error);
     throw error;
   }
 };
@@ -48,7 +48,7 @@ export const deleteApartment = async (id) => {
     const response = await axiosInstance.delete(`/apartments/${id}`);
     return response.data;
   } catch (error) {
-    console.error("Failed to delete apartment:", error);
+    //console.error("Failed to delete apartment:", error);
     throw error;
   }
 };

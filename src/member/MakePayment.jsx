@@ -35,7 +35,7 @@ const MakePayment = () => {
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
 
-  // Fetch user agreements
+  
   const { data: agreements, isLoading: agreementsLoading } = useQuery({
     queryKey: ['userAgreements', user.email],
     queryFn: async () => {
@@ -45,10 +45,10 @@ const MakePayment = () => {
     enabled: !!user.email,
   });
 
-  // Find active agreement
+  
   const activeAgreement = agreements?.find(agreement => agreement.status === 'accepted');
 
-  // Fetch payments for current month
+  
   const { data: payments, isLoading: paymentsLoading } = useQuery({
     queryKey: ['userPayments', user.email, formData.month],
     queryFn: async () => {
@@ -60,12 +60,12 @@ const MakePayment = () => {
     enabled: !!user.email && !!formData.month,
   });
 
-  // Check if payment is completed for current month
+ 
   const paymentCompleted = payments?.some(
     payment => payment.status === 'completed' && payment.month === formData.month
   );
 
-  // Apply coupon mutation
+  
   const applyCouponMutation = useMutation({
     mutationFn: async (couponCode) => {
       const response = await axiosInstance.post('/coupons/apply', { code: couponCode });
@@ -111,7 +111,7 @@ const MakePayment = () => {
     }
   });
 
-  // Submit payment mutation
+  
   const submitPaymentMutation = useMutation({
     mutationFn: async (paymentData) => {
       const response = await axiosInstance.post('/payments/request', paymentData);
@@ -141,7 +141,7 @@ const MakePayment = () => {
         confirmButtonColor: '#10B981',
       });
 
-      // Reset form
+      
       setFormData({
         month: getCurrentMonth(),
         couponCode: '',

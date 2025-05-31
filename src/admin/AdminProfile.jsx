@@ -9,21 +9,21 @@ import StatCard from '../components/StatCard';
 const AdminProfile = () => {
   const { user } = useAuth();
 
-  // Check admin status
+ 
   const { data: isAdmin, isLoading: isAdminLoading, error: adminError } = useQuery({
     queryKey: ['adminCheck', user?.email],
     queryFn: () => checkAdmin(user?.email),
     enabled: !!user?.email,
   });
   
-  // Fetch admin stats
+  
   const { data: stats, isLoading: statsLoading, error: statsError } = useQuery({
     queryKey: ['adminStats'],
     queryFn: getAdminStats,
     enabled: isAdmin, 
   });
 
-  // Calculate percentages based on the stats
+  
   const availablePercentage = stats ? (stats.availableApartments / stats.apartments * 100) : 0;
   const unavailablePercentage = stats ? 100 - availablePercentage : 0;
 
