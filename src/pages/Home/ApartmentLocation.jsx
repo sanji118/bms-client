@@ -2,13 +2,13 @@ import { MapContainer, TileLayer, Marker, Popup } from 'react-leaflet';
 import { Icon } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import { useEffect, useState } from 'react';
-import axios from 'axios';
+import axiosInstance from '../../utils/axiosInstance';
 
 const ApartmentLocation = () => {
   const [apartments, setApartments] = useState([]);
 
   useEffect(() => {
-    axios.get('http://localhost:5000/apartments')
+    axiosInstance.get('/apartments')
       .then(res => setApartments(res.data))
       .catch(err => {
         //console.error(err)

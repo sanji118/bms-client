@@ -24,7 +24,7 @@ import AdminAnnouncements from "../admin/AdminAnnouncements";
 import UserProfile from "../User/UserProfile";
 
 
-const apartments = () => fetch('http://localhost:5000/apartments')
+
 export const router = createBrowserRouter([
     {
         path:'/',
@@ -46,7 +46,6 @@ export const router = createBrowserRouter([
             {
                 path: "apartments",
                 element: <ApartmentsList/>,
-                loader: apartments
             },
             
             {
