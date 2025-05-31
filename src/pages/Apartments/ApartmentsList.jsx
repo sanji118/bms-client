@@ -1,13 +1,14 @@
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../hook/useAuth';
 import { useEffect, useState } from 'react';
-import { createAgreement, getUserAgreements } from '../../utils/useAgreement';
+import { createAgreement, getUserAgreements, deleteAgreement } from '../../utils/useAgreement';
 import Swal from 'sweetalert2';
 import RequestAgreement from '../../member/RequestAgreement';
-import { useQuery } from '@tanstack/react-query';
-import { LoaderPinwheelIcon, SearchIcon, HomeIcon, CalendarIcon, LayersIcon, DollarSignIcon, CheckCircleIcon, XCircleIcon, ClockIcon, Building } from 'lucide-react';
-import { getApartments } from '../../utils/useApartment';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
+import { LoaderPinwheelIcon, SearchIcon, HomeIcon, CalendarIcon, LayersIcon, DollarSignIcon, CheckCircleIcon, XCircleIcon, ClockIcon, Building, EditIcon, TrashIcon } from 'lucide-react';
+import { getApartments, deleteApartment } from '../../utils/useApartment';
 import { motion } from 'framer-motion';
+import EditApartmentModal from './EditApartmentModal';
 
 const ApartmentsList = () => {
   const { data: apartments = [], isLoading, error } = useQuery({
@@ -25,6 +26,7 @@ const ApartmentsList = () => {
   const [userAgreements, setUserAgreements] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showAgreementModal, setShowAgreementModal] = useState(false);
+  const [showEditModal, setShowEditModal] = useState(false);
   const [selectedApartment, setSelectedApartment] = useState(null);
   const [agreementForm, setAgreementForm] = useState({
     startDate: '',
@@ -34,6 +36,61 @@ const ApartmentsList = () => {
   });
   const apartmentsPerPage = 6;
   const navigate = useNavigate();
+
+  // Delete apartment mutation
+  const deleteApartmentMutation = useMutation({
+    mutationFn: deleteApartment,
+    onSuccess: () => {
+      queryClient.invalidateQueries(['apartments']);
+      Swal.fire({
+        title: 'Success!',
+        text: 'Apartment deleted successfully',
+        icon: 'success',
+        background: '#1f2937',
+        color: '#fff',
+        confirmButtonColor: '#3b82f6'
+      });
+    },
+    onError: (error) => {
+      Swal.fire({
+        title: 'Error',
+        text: error.message || 'Failed to delete apartment',
+        icon: 'error',
+        background: '#1f2937',
+        color: '#fff',
+        confirmButtonColor: '#3b82f6'
+      });
+    }
+  });
+
+  // Delete agreement mutation
+  const deleteAgreementMutation = useMutation({
+    mutationFn: deleteAgreement,
+    onSuccess: () => {
+      Swal.fire({
+        title: 'Success!',
+        text: 'Agreement request deleted',
+        icon: 'success',
+        background: '#1f2937',
+        color: '#fff',
+        confirmButtonColor: '#3b82f6'
+      });
+      return getUserAgreements(user.email);
+    },
+    onSuccess: (updatedAgreements) => {
+      setUserAgreements(updatedAgreements);
+    },
+    onError: (error) => {
+      Swal.fire({
+        title: 'Error',
+        text: error.message || 'Failed to delete agreement',
+        icon: 'error',
+        background: '#1f2937',
+        color: '#fff',
+        confirmButtonColor: '#3b82f6'
+      });
+    }
+  });
 
   useEffect(() => {
     if (apartments.length) setFiltered(apartments);
@@ -48,6 +105,42 @@ const ApartmentsList = () => {
     };
     fetchAgreements();
   }, [user]);
+
+  const handleDeleteApartment = (id) => {
+    Swal.fire({
+      title: 'Are you sure?',
+      text: "You won't be able to revert this!",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, delete it!',
+      background: '#1f2937',
+      color: '#fff'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        deleteApartmentMutation.mutate(id);
+      }
+    });
+  };
+
+  const handleDeleteAgreement = (agreementId) => {
+    Swal.fire({
+      title: 'Cancel Agreement Request?',
+      text: "This will delete your pending request",
+      icon: 'warning',
+      showCancelButton: true,
+      confirmButtonColor: '#3085d6',
+      cancelButtonColor: '#d33',
+      confirmButtonText: 'Yes, cancel it',
+      background: '#1f2937',
+      color: '#fff'
+    }).then((result) => {
+      if (result.isConfirmed) {
+        deleteAgreementMutation.mutate(agreementId);
+      }
+    });
+  };
 
   if (isLoading) return (
     <div className="flex justify-center items-center min-h-screen">
@@ -211,9 +304,11 @@ const ApartmentsList = () => {
       return { 
         text: exist.status.charAt(0).toUpperCase() + exist.status.slice(1), 
         className: `btn ${btnStyle} btn-block text-white shadow-lg hover:shadow-${btnStyle}/50`, 
-        disabled: true, 
+        disabled: exist.status !== 'pending', // Only allow delete for pending requests
         tooltip: exist.status,
-        icon
+        icon,
+        agreementId: exist._id,
+        isPending: exist.status === 'pending'
       };
     }
     
@@ -258,6 +353,14 @@ const ApartmentsList = () => {
           <h1 className="text-3xl font-bold text-gray-800 mb-6 flex items-center">
             <HomeIcon className="w-8 h-8 mr-3 text-primary" />
             Available Apartments
+            {user?.role === 'admin' && (
+              <button 
+                onClick={() => navigate('/add-apartment')}
+                className="ml-auto btn btn-primary"
+              >
+                Add New Apartment
+              </button>
+            )}
           </h1>
           
           <div className="flex flex-col md:flex-row items-center gap-4 mb-6">
@@ -324,6 +427,31 @@ const ApartmentsList = () => {
                     transition={{ delay: index * 0.1 }}
                     className="card bg-white shadow-xl hover:shadow-2xl transition-shadow duration-300 overflow-hidden"
                   >
+                    {user?.role === 'admin' && (
+                      <div className="absolute top-2 left-2 flex gap-2 z-10">
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            setSelectedApartment(apt);
+                            setShowEditModal(true);
+                          }}
+                          className="btn btn-sm btn-circle btn-warning text-white"
+                          title="Edit Apartment"
+                        >
+                          <EditIcon className="w-4 h-4" />
+                        </button>
+                        <button 
+                          onClick={(e) => {
+                            e.stopPropagation();
+                            handleDeleteApartment(apt._id);
+                          }}
+                          className="btn btn-sm btn-circle btn-error text-white"
+                          title="Delete Apartment"
+                        >
+                          <TrashIcon className="w-4 h-4" />
+                        </button>
+                      </div>
+                    )}
                     <figure className="relative">
                       <img 
                         src={apt.image || '/default-apartment.jpg'} 
@@ -372,6 +500,18 @@ const ApartmentsList = () => {
                           {btn.icon}
                           {btn.text}
                         </motion.button>
+                        {btn.isPending && (
+                          <motion.button 
+                            whileHover={{ scale: 1.03 }}
+                            whileTap={{ scale: 0.97 }}
+                            onClick={() => handleDeleteAgreement(btn.agreementId)}
+                            className="btn btn-error btn-block text-white shadow-lg hover:shadow-error/50"
+                            title="Cancel this request"
+                          >
+                            <TrashIcon className="w-5 h-5 mr-2" />
+                            Cancel Request
+                          </motion.button>
+                        )}
                       </div>
                     </div>
                   </motion.div>
@@ -437,6 +577,17 @@ const ApartmentsList = () => {
             setAgreementForm={setAgreementForm}
             selectedApartment={selectedApartment}
             agreementForm={agreementForm}
+          />
+        )}
+
+        {showEditModal && selectedApartment && (
+          <EditApartmentModal
+            apartment={selectedApartment}
+            onClose={() => setShowEditModal(false)}
+            onSave={() => {
+              queryClient.invalidateQueries(['apartments']);
+              setShowEditModal(false);
+            }}
           />
         )}
       </div>

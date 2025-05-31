@@ -5,7 +5,6 @@ import Home from "../pages/Home/Home";
 import Login from "../Auth/Login";
 import Register from "../Auth/Register";
 import ApartmentsList from "../pages/Apartments/ApartmentsList";
-import ApartmentDetails from "../pages/Apartments/ApartmentDetails";
 import PrivateProvider from "../providers/PrivateProvider";
 import UserAnnouncements from "../User/UserAnnouncements";
 import MemberProfile from "../member/MemberProfile";
@@ -49,10 +48,7 @@ export const router = createBrowserRouter([
                 element: <ApartmentsList/>,
                 loader: apartments
             },
-            {
-                path: 'apartments/:id',
-                element: <ApartmentDetails/>
-            },
+            
             {
                 path: 'coupons',
                 element:<Coupons/>

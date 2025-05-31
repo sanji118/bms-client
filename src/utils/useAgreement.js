@@ -49,3 +49,14 @@ export const updateAgreementStatus = async (id, status) => {
     throw error;
   }
 };
+
+// Add this to your useAgreement.js or similar frontend API file
+export const deleteAgreement = async (id) => {
+  try {
+    const response = await axiosInstance.delete(`/agreements/${id}`);
+    return response.data;
+  } catch (error) {
+    console.error("Failed to delete agreement:", error);
+    throw error;
+  }
+};
