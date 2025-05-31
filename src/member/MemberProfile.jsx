@@ -1,14 +1,23 @@
 import { useEffect, useState } from 'react';
+import { useQuery } from '@tanstack/react-query';
 import { useAuth } from '../hook/useAuth';
-import { formatDate, formatCurrency,  } from '../utils';
+import { formatDate, formatCurrency } from '../utils';
 import { getUserAgreements } from '../utils/useAgreement';
 import { getApartment } from '../utils/useApartment';
+import { checkMember } from '../utils/useUser';
 import { FaBuilding, FaUserCheck, FaCalendarAlt, FaMoneyBillWave, FaLayerGroup } from 'react-icons/fa';
 
 const MemberProfile = () => {
   const { user } = useAuth();
   const [agreement, setAgreement] = useState(null);
   const [apartment, setApartment] = useState(null);
+
+ 
+  const { data: isMember, isLoading: isMemberLoading, error: memberError } = useQuery({
+  queryKey: ['memberStatus', user?.email],
+  queryFn: () => checkMember(user?.email),
+  enabled: !!user?.email,
+});
 
   useEffect(() => {
     const fetchAgreement = async () => {
@@ -33,9 +42,17 @@ const MemberProfile = () => {
     }
   }, [user]);
 
+  if (isMemberLoading) {
+    return <div>Loading member status...</div>;
+  }
+
+  if (memberError) {
+    return <div>Error checking member status: {memberError.message}</div>;
+  }
+
   return (
     <div className="bg-base-100 p-8 border-l border-l-amber-300 shadow-xl max-w-5xl mx-auto ">
-      <h2 className="text-3xl font-bold mb-8 text-center text-cyan-600"> Member Profile</h2>
+      <h2 className="text-3xl font-bold mb-8 text-center text-cyan-600">Member Profile</h2>
 
       <div className="flex flex-col md:flex-row gap-8 items-start">
         {/* Profile Section */}
@@ -47,6 +64,12 @@ const MemberProfile = () => {
           </div>
           <h3 className="text-xl font-semibold">{user?.displayName || 'No Name'}</h3>
           <p className="text-gray-500">{user?.email}</p>
+          {/* Display member status */}
+          <div className="mt-2">
+            <span className={`badge ${isMember ? 'badge-success' : 'badge-error'}`}>
+              {isMember ? 'Member' : 'Not a Member'}
+            </span>
+          </div>
         </div>
 
         {/* Info Section */}

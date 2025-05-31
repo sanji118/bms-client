@@ -3,7 +3,7 @@ import { useAuth } from '../hook/useAuth';
 import { formatCurrency, formatDate, } from '../utils';
 import { FiDollarSign, FiCalendar, FiCheckCircle, FiClock, FiAward, FiCreditCard } from 'react-icons/fi';
 import { FaRegSadTear } from 'react-icons/fa';
-import { getPayments } from '../utils/usePayment';
+import { getUserPayments } from '../utils/usePayment';
 
 const PaymentHistory = () => {
   const { user } = useAuth();
@@ -13,7 +13,7 @@ const PaymentHistory = () => {
   useEffect(() => {
     const fetchPayments = async () => {
       try {
-        const data = await getPayments(user.email);
+        const data = await getUserPayments(user.email);
         setPayments(data);
       } catch (error) {
         console.error('Error fetching payments:', error);
@@ -91,8 +91,8 @@ const PaymentHistory = () => {
                         <FiCalendar className="text-blue-600" />
                       </div>
                       <div>
-                        <div className="text-sm font-medium text-gray-900">{formatDate(payment.createdAt)}</div>
-                        <div className="text-sm text-gray-500">{new Date(payment.createdAt).toLocaleTimeString()}</div>
+                        <div className="text-sm font-medium text-gray-900">{formatDate(payment.date)}</div>
+                        <div className="text-sm text-gray-500">{formatDate(payment.date)}</div>
                       </div>
                     </div>
                   </td>

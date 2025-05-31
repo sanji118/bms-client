@@ -3,35 +3,52 @@ import Swal from 'sweetalert2';
 import { FaCheck, FaTimes } from 'react-icons/fa';
 import { getAgreementRequests, updateAgreementStatus } from '../utils/useAgreement';
 import { formatDate } from '../utils';
-import { useAuth } from '../hook/useAuth';
+import { updateApartment } from '../utils/useApartment'; 
 
 const AgreementRequests = () => {
-  const {refreshUserData} = useAuth()
   const queryClient = useQueryClient();
 
   const { data: requests = [], isLoading } = useQuery({
     queryKey: ['agreementRequests'],
-    queryFn: async()=>{
+    queryFn: async () => {
       const data = await getAgreementRequests();
-      return data.filter(request=> request.status === 'pending')
+      return data.filter(request => request.status === 'pending');
     }
   });
 
   const mutation = useMutation({
-    mutationFn: ({ id, status }) => updateAgreementStatus(id, status),
-    onSuccess: async(data, variables) => {
-      const {status} = variables;
-      if(status === 'accepted'){
-        await refreshUserData();
+    mutationFn: async ({ id, status, apartmentId }) => {
+      // First update the agreement status
+      await updateAgreementStatus(id, status);
+      
+      // If accepted, update the apartment status to 'unavailable'
+      if (status === 'accepted' && apartmentId) {
+        await updateApartment(apartmentId, { status: 'unavailable' });
       }
+    },
+    onSuccess: () => {
+      // Invalidate both agreement requests and apartments queries
       queryClient.invalidateQueries(['agreementRequests']);
+      queryClient.invalidateQueries(['apartments']);
+    },
+    onError: (error) => {
+      console.error('Error updating agreement:', error);
+      Swal.fire({
+        title: 'Error',
+        text: error.message || 'Failed to update agreement status',
+        icon: 'error',
+      });
     }
   });
 
-  const handleStatusUpdate = async (id, status) => {
+  const handleStatusUpdate = async (id, status, apartmentId) => {
+    const actionText = status === 'accepted' 
+      ? 'accept this request and mark the apartment as unavailable' 
+      : 'reject this request';
+
     const result = await Swal.fire({
-      title: `Are you sure you want to ${status} this request?`,
-      icon: 'warning',
+      title: `Are you sure you want to ${actionText}?`,
+      icon: 'question',
       showCancelButton: true,
       confirmButtonText: `Yes, ${status}`,
       cancelButtonText: 'Cancel',
@@ -39,16 +56,18 @@ const AgreementRequests = () => {
     });
 
     if (result.isConfirmed) {
-      mutation.mutate({ id, status }, {
-        onSuccess: () => {
-          Swal.fire({
-            title: `Request ${status === 'accepted' ? 'Accepted' : 'Rejected'}`,
-            icon: 'success',
-            timer: 1500,
-            showConfirmButton: false,
-          });
-        }
-      });
+      try {
+        await mutation.mutateAsync({ id, status, apartmentId });
+        Swal.fire({
+          title: `Request ${status === 'accepted' ? 'Accepted' : 'Rejected'}`,
+          text: status === 'accepted' ? 'The apartment has been marked as unavailable.' : '',
+          icon: 'success',
+          timer: 1500,
+          showConfirmButton: false,
+        });
+      } catch (error) {
+        // Error handling is already done in mutation.onError
+      }
     }
   };
 
@@ -87,15 +106,15 @@ const AgreementRequests = () => {
                   <td className="py-3 px-4 border">{formatDate(request.createdAt)}</td>
                   <td className="py-3 px-4 border space-x-2">
                     <button
-                      onClick={() => handleStatusUpdate(request._id, 'accepted')}
-                      className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded flex items-center gap-1 mx-auto"
+                      onClick={() => handleStatusUpdate(request._id, 'accepted', request.apartmentId)}
+                      className="bg-green-500 hover:bg-green-600 text-white px-3 py-1 rounded flex items-center gap-1 mx-auto transition-colors"
                       disabled={mutation.isLoading}
                     >
                       <FaCheck /> Accept
                     </button>
                     <button
-                      onClick={() => handleStatusUpdate(request._id, 'rejected')}
-                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded flex items-center gap-1 mx-auto"
+                      onClick={() => handleStatusUpdate(request._id, 'rejected', request.apartmentId)}
+                      className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded flex items-center gap-1 mx-auto transition-colors"
                       disabled={mutation.isLoading}
                     >
                       <FaTimes /> Reject

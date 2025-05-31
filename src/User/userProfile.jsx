@@ -81,7 +81,7 @@ const UserProfile = () => {
           </div>
           <div>
             <h2 className="text-4xl font-extrabold text-white drop-shadow">
-              {user?.displayName || "Guest User"}
+              {user?.displayName || user?.email?.split('@')[0]}
             </h2>
             <p className="text-yellow-100 text-lg font-medium">
               {user?.email || "No email provided"}

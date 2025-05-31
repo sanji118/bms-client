@@ -92,7 +92,7 @@ const Navbar = () => {
                         >
                             <div className="w-10 rounded-full">
                                 <img 
-                                    src={user.photoURL || 'https://via.placeholder.com/150'} 
+                                    src={user.photoURL || 'https://i.postimg.cc/ZKHL4BgN/3d-rendering-kawaii-summer-icon-23-2150528405.avif'} 
                                     alt={user.displayName || 'User'} 
                                 />
                             </div>

@@ -5,8 +5,9 @@ import { createAgreement, getUserAgreements } from '../../utils/useAgreement';
 import Swal from 'sweetalert2';
 import RequestAgreement from '../../member/RequestAgreement';
 import { useQuery } from '@tanstack/react-query';
-import { LoaderPinwheelIcon } from 'lucide-react';
+import { LoaderPinwheelIcon, SearchIcon, HomeIcon, CalendarIcon, LayersIcon, DollarSignIcon, CheckCircleIcon, XCircleIcon, ClockIcon, Building } from 'lucide-react';
 import { getApartments } from '../../utils/useApartment';
+import { motion } from 'framer-motion';
 
 const ApartmentsList = () => {
   const { data: apartments = [], isLoading, error } = useQuery({
@@ -48,8 +49,25 @@ const ApartmentsList = () => {
     fetchAgreements();
   }, [user]);
 
-  if (isLoading) return <div className="flex justify-center p-10"><LoaderPinwheelIcon className="animate-spin w-10 h-10" /></div>;
-  if (error) return <div className="text-red-500 text-center">{error.message}</div>;
+  if (isLoading) return (
+    <div className="flex justify-center items-center min-h-screen">
+      <motion.div
+        animate={{ rotate: 360 }}
+        transition={{ duration: 2, repeat: Infinity, ease: "linear" }}
+      >
+        <LoaderPinwheelIcon className="w-16 h-16 text-primary" />
+      </motion.div>
+    </div>
+  );
+  
+  if (error) return (
+    <div className="alert alert-error shadow-lg max-w-2xl mx-auto mt-10">
+      <div>
+        <XCircleIcon className="w-6 h-6" />
+        <span>{error.message}</span>
+      </div>
+    </div>
+  );
 
   const handleAgreementClick = (apartment) => {
     if (!user) {
@@ -59,7 +77,11 @@ const ApartmentsList = () => {
         icon: 'warning',
         showCancelButton: true,
         confirmButtonText: 'Login',
-        cancelButtonText: 'Cancel'
+        cancelButtonText: 'Cancel',
+        background: '#1f2937',
+        color: '#fff',
+        confirmButtonColor: '#3b82f6',
+        cancelButtonColor: '#6b7280'
       }).then((result) => {
         if (result.isConfirmed) navigate('/login');
       });
@@ -71,7 +93,14 @@ const ApartmentsList = () => {
 
   const handleAgreementSubmit = async () => {
     if (!agreementForm.termsAccepted || !agreementForm.startDate || !agreementForm.endDate) {
-      Swal.fire('Error', 'Please complete all required fields and accept terms.', 'error');
+      Swal.fire({
+        title: 'Error',
+        text: 'Please complete all required fields and accept terms.',
+        icon: 'error',
+        background: '#1f2937',
+        color: '#fff',
+        confirmButtonColor: '#3b82f6'
+      });
       return;
     }
 
@@ -83,11 +112,25 @@ const ApartmentsList = () => {
              a.floor === selectedApartment.floor_no
       );
       if (exists) {
-        Swal.fire('Notice', `You already have a ${exists.status} agreement for this apartment.`, 'info');
+        Swal.fire({
+          title: 'Notice',
+          text: `You already have a ${exists.status} agreement for this apartment.`,
+          icon: 'info',
+          background: '#1f2937',
+          color: '#fff',
+          confirmButtonColor: '#3b82f6'
+        });
         return;
       }
       if (userAgreements.some(a => a.status === 'accepted')) {
-        Swal.fire('Already Renting', 'You can only rent one apartment at a time.', 'warning');
+        Swal.fire({
+          title: 'Already Renting',
+          text: 'You can only rent one apartment at a time.',
+          icon: 'warning',
+          background: '#1f2937',
+          color: '#fff',
+          confirmButtonColor: '#3b82f6'
+        });
         return;
       }
 
@@ -108,26 +151,87 @@ const ApartmentsList = () => {
       };
 
       await createAgreement(agreementData);
-      Swal.fire('Success!', 'Agreement request submitted.', 'success');
+      Swal.fire({
+        title: 'Success!',
+        text: 'Agreement request submitted.',
+        icon: 'success',
+        background: '#1f2937',
+        color: '#fff',
+        confirmButtonColor: '#3b82f6'
+      });
       const updated = await getUserAgreements(user.email);
       setUserAgreements(updated);
       setShowAgreementModal(false);
     } catch (error) {
-      Swal.fire('Error', error.response?.data?.error || 'Failed to submit agreement', 'error');
+      Swal.fire({
+        title: 'Error',
+        text: error.response?.data?.error || 'Failed to submit agreement',
+        icon: 'error',
+        background: '#1f2937',
+        color: '#fff',
+        confirmButtonColor: '#3b82f6'
+      });
     } finally {
       setLoading(false);
     }
   };
 
   const getButtonState = (apt) => {
-    if (!user) return { text: 'Agreement', className: 'btn btn-outline btn-success', disabled: false, tooltip: 'Login to request agreement' };
-    const exist = userAgreements.find(a => a.apartmentNo === apt.apartment_no && a.block === apt.block_name && a.floor === apt.floor_no);
-    if (exist) {
-      const btnStyle = exist.status === 'accepted' ? 'btn-success' : exist.status === 'pending' ? 'btn-warning' : 'btn-error';
-      return { text: exist.status.charAt(0).toUpperCase() + exist.status.slice(1), className: `btn ${btnStyle}`, disabled: true, tooltip: exist.status };
+    if (apt.status === 'unavailable') {
+      return { 
+        text: 'Unavailable', 
+        className: 'btn btn-error btn-block text-white shadow-lg hover:shadow-error/50', 
+        disabled: true, 
+        tooltip: 'This apartment is not available for rent',
+        icon: <XCircleIcon className="w-5 h-5 mr-2" />
+      };
     }
-    if (userAgreements.some(a => a.status === 'accepted')) return { text: 'Already Renting', className: 'btn btn-info', disabled: true, tooltip: 'Only one apartment allowed' };
-    return { text: 'Request Agreement', className: 'btn btn-outline btn-success', disabled: false, tooltip: 'Click to request agreement' };
+    
+    if (!user) return { 
+      text: 'Login to Request', 
+      className: 'btn btn-soft btn-warning btn-block text-white shadow-lg hover:shadow-primary/50', 
+      disabled: false, 
+      tooltip: 'Login to request agreement',
+      icon: <HomeIcon className="w-5 h-5 mr-2" />
+    };
+    
+    const exist = userAgreements.find(a => 
+      a.apartmentNo === apt.apartment_no && 
+      a.block === apt.block_name && 
+      a.floor === apt.floor_no
+    );
+    
+    if (exist) {
+      const btnStyle = exist.status === 'accepted' ? 'btn-success' : 
+                      exist.status === 'pending' ? 'btn-warning' : 'btn-error';
+      const icon = exist.status === 'accepted' ? <CheckCircleIcon className="w-5 h-5 mr-2" /> : 
+                   exist.status === 'pending' ? <ClockIcon className="w-5 h-5 mr-2" /> : 
+                   <XCircleIcon className="w-5 h-5 mr-2" />;
+      
+      return { 
+        text: exist.status.charAt(0).toUpperCase() + exist.status.slice(1), 
+        className: `btn ${btnStyle} btn-block text-white shadow-lg hover:shadow-${btnStyle}/50`, 
+        disabled: true, 
+        tooltip: exist.status,
+        icon
+      };
+    }
+    
+    if (userAgreements.some(a => a.status === 'accepted')) return { 
+      text: 'Already Renting', 
+      className: 'btn btn-info btn-block text-white shadow-lg hover:shadow-info/50', 
+      disabled: true, 
+      tooltip: 'Only one apartment allowed',
+      icon: <HomeIcon className="w-5 h-5 mr-2" />
+    };
+    
+    return { 
+      text: 'Request Agreement', 
+      className: 'btn btn-primary btn-block text-white shadow-lg hover:shadow-primary/50', 
+      disabled: false, 
+      tooltip: 'Click to request agreement',
+      icon: <CalendarIcon className="w-5 h-5 mr-2" />
+    };
   };
 
   const handleSearch = () => {
@@ -143,57 +247,199 @@ const ApartmentsList = () => {
   const totalPages = Math.ceil(filtered.length / apartmentsPerPage);
 
   return (
-    <div className="p-6">
-      <div className="flex items-center gap-4 mb-6">
-        <input type="number" placeholder="Min Rent" value={minRent} onChange={e => setMinRent(e.target.value)} className="input input-bordered w-32" />
-        <input type="number" placeholder="Max Rent" value={maxRent} onChange={e => setMaxRent(e.target.value)} className="input input-bordered w-32" />
-        <button className="btn bg-yellow-500" onClick={handleSearch}>Search</button>
-      </div>
-
-      <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {currentApartments.map((apt) => {
-          const btn = getButtonState(apt);
-          return (
-            <div key={apt._id} className="card bg-base-100 shadow-xl">
-              <figure><img src={apt.image} alt="Apartment" className="h-52 w-full object-cover" /></figure>
-              <div className="card-body text-lg">
-                <h2 className="card-title">Apartment {apt.apartment_no}</h2>
-                <p>Floor: {apt.floor_no}</p>
-                <p>Block: {apt.block_name}</p>
-                <p>Rent: <span className="font-bold">{apt.rent}৳</span>/month</p>
-                <div className="card-actions justify-end">
-                  <button onClick={() => handleAgreementClick(apt)} className={btn.className} disabled={btn.disabled} title={btn.tooltip}>{btn.text}</button>
-                </div>
-              </div>
+    <div className="p-6 bg-gradient-to-br from-gray-50 to-gray-100 min-h-screen">
+      <div className="max-w-7xl mx-auto">
+        <motion.div 
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="bg-white rounded-xl shadow-xl p-6 mb-8"
+        >
+          <h1 className="text-3xl font-bold text-gray-800 mb-6 flex items-center">
+            <HomeIcon className="w-8 h-8 mr-3 text-primary" />
+            Available Apartments
+          </h1>
+          
+          <div className="flex flex-col md:flex-row items-center gap-4 mb-6">
+            <div className="relative flex-1">
+              <DollarSignIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <input 
+                type="number" 
+                placeholder="Min Rent" 
+                value={minRent} 
+                onChange={e => setMinRent(e.target.value)} 
+                className="input input-bordered w-full pl-10 pr-4 py-2 rounded-lg border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/50" 
+              />
             </div>
-          );
-        })}
-      </div>
-
-      {showAgreementModal && selectedApartment && (
-        <RequestAgreement
-          loading={loading}
-          handleAgreementSubmit={handleAgreementSubmit}
-          setShowAgreementModal={setShowAgreementModal}
-          setAgreementForm={setAgreementForm}
-          selectedApartment={selectedApartment}
-          agreementForm={agreementForm}
-        />
-      )}
-
-      {totalPages > 1 && (
-        <div className="mt-6 flex justify-center gap-2">
-          {Array.from({ length: totalPages }, (_, i) => (
-            <button
-              key={i}
-              onClick={() => setCurrentPage(i + 1)}
-              className={`btn btn-sm ${currentPage === i + 1 ? 'bg-yellow-500' : 'btn-outline'}`}
+            <div className="relative flex-1">
+              <DollarSignIcon className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
+              <input 
+                type="number" 
+                placeholder="Max Rent" 
+                value={maxRent} 
+                onChange={e => setMaxRent(e.target.value)} 
+                className="input input-bordered w-full pl-10 pr-4 py-2 rounded-lg border-gray-300 focus:border-primary focus:ring-2 focus:ring-primary/50" 
+              />
+            </div>
+            <motion.button 
+              whileHover={{ scale: 1.05 }}
+              whileTap={{ scale: 0.95 }}
+              className="btn btn-primary text-white shadow-lg hover:shadow-primary/50 px-6 py-3 rounded-lg flex items-center"
+              onClick={handleSearch}
             >
-              {i + 1}
+              <SearchIcon className="w-5 h-5 mr-2" />
+              Search
+            </motion.button>
+          </div>
+        </motion.div>
+
+        {filtered.length === 0 ? (
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="bg-white rounded-xl shadow-lg p-8 text-center"
+          >
+            <div className="text-gray-500 text-lg mb-4">No apartments match your search criteria</div>
+            <button 
+              onClick={() => {
+                setMinRent('');
+                setMaxRent('');
+                setFiltered(apartments);
+              }}
+              className="btn btn-outline btn-primary"
+            >
+              Reset Filters
             </button>
-          ))}
-        </div>
-      )}
+          </motion.div>
+        ) : (
+          <>
+            <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {currentApartments.map((apt, index) => {
+                const btn = getButtonState(apt);
+                return (
+                  <motion.div 
+                    key={apt._id}
+                    initial={{ opacity: 0, y: 20 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    transition={{ delay: index * 0.1 }}
+                    className="card bg-white shadow-xl hover:shadow-2xl transition-shadow duration-300 overflow-hidden"
+                  >
+                    <figure className="relative">
+                      <img 
+                        src={apt.image || '/default-apartment.jpg'} 
+                        alt="Apartment" 
+                        className="h-60 w-full object-cover transition-transform duration-500 hover:scale-105" 
+                      />
+                      <div className="absolute top-4 right-4 badge badge-warning text-white shadow-lg">
+                        {apt.rent}৳/month
+                      </div>
+                    </figure>
+                    <div className="card-body p-6">
+                      <h2 className="card-title text-2xl font-bold text-gray-800">
+                        Apartment {apt.apartment_no}
+                      </h2>
+                      
+                      <div className="space-y-2 text-gray-600">
+                        <div className="flex items-center">
+                          <LayersIcon className="w-5 h-5 mr-2 text-primary" />
+                          <span>Floor: {apt.floor_no}</span>
+                        </div>
+                        <div className="flex items-center">
+                          <Building className="w-5 h-5 mr-2 text-primary" />
+                          <span>Block: {apt.block_name}</span>
+                        </div>
+                        <div className="flex items-center">
+                          {apt.status === 'available' ? (
+                            <CheckCircleIcon className="w-5 h-5 mr-2 text-green-500" />
+                          ) : (
+                            <XCircleIcon className="w-5 h-5 mr-2 text-red-500" />
+                          )}
+                          <span className={apt.status === 'available' ? 'text-green-500' : 'text-red-500'}>
+                            {apt.status.charAt(0).toUpperCase() + apt.status.slice(1)}
+                          </span>
+                        </div>
+                      </div>
+                      
+                      <div className="card-actions mt-4">
+                        <motion.button 
+                          whileHover={!btn.disabled ? { scale: 1.03 } : {}}
+                          whileTap={!btn.disabled ? { scale: 0.97 } : {}}
+                          onClick={() => apt.status === 'available' && handleAgreementClick(apt)} 
+                          className={btn.className}
+                          disabled={btn.disabled} 
+                          title={btn.tooltip}
+                        >
+                          {btn.icon}
+                          {btn.text}
+                        </motion.button>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+
+            {totalPages > 1 && (
+              <motion.div 
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ delay: 0.3 }}
+                className="mt-10 flex justify-center"
+              >
+                <div className="btn-group">
+                  <button 
+                    onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
+                    disabled={currentPage === 1}
+                    className="btn btn-outline"
+                  >
+                    «
+                  </button>
+                  {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                    let pageNum;
+                    if (totalPages <= 5) {
+                      pageNum = i + 1;
+                    } else if (currentPage <= 3) {
+                      pageNum = i + 1;
+                    } else if (currentPage >= totalPages - 2) {
+                      pageNum = totalPages - 4 + i;
+                    } else {
+                      pageNum = currentPage - 2 + i;
+                    }
+                    
+                    return (
+                      <button
+                        key={pageNum}
+                        onClick={() => setCurrentPage(pageNum)}
+                        className={`btn ${currentPage === pageNum ? 'btn-active' : 'btn-outline'}`}
+                      >
+                        {pageNum}
+                      </button>
+                    );
+                  })}
+                  <button 
+                    onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
+                    disabled={currentPage === totalPages}
+                    className="btn btn-outline"
+                  >
+                    »
+                  </button>
+                </div>
+              </motion.div>
+            )}
+          </>
+        )}
+
+        {showAgreementModal && selectedApartment && (
+          <RequestAgreement
+            loading={loading}
+            handleAgreementSubmit={handleAgreementSubmit}
+            setShowAgreementModal={setShowAgreementModal}
+            setAgreementForm={setAgreementForm}
+            selectedApartment={selectedApartment}
+            agreementForm={agreementForm}
+          />
+        )}
+      </div>
     </div>
   );
 };

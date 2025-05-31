@@ -1,4 +1,5 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
+import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { useAuth } from '../hook/useAuth';
 import { formatCurrency, getCurrentMonth } from '../utils';
 import { motion } from 'framer-motion';
@@ -12,7 +13,6 @@ import {
   FaExclamationTriangle,
   FaSpinner,
   FaBuilding,
-  FaHome,
   FaLayerGroup,
   FaEnvelope,
   FaCreditCard,
@@ -21,10 +21,10 @@ import {
 import { GiPayMoney } from 'react-icons/gi';
 import { MdDiscount, MdOutlineApartment } from 'react-icons/md';
 import axiosInstance from '../utils/axiosInstance';
-import { getUserAgreements } from '../utils/useAgreement';
 
 const MakePayment = () => {
   const { user } = useAuth();
+  const queryClient = useQueryClient();
   const [formData, setFormData] = useState({
     month: getCurrentMonth(),
     couponCode: '',
@@ -32,141 +32,141 @@ const MakePayment = () => {
   const [couponApplied, setCouponApplied] = useState(false);
   const [discount, setDiscount] = useState(0);
   const [discountAmount, setDiscountAmount] = useState(0);
-  const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [success, setSuccess] = useState('');
-  const [apartment, setApartment] = useState(null);
-  const [fetchingData, setFetchingData] = useState(true);
-  const [paymentCompleted, setPaymentCompleted] = useState(
-    () => JSON.parse(localStorage.getItem('paymentCompleted')) || false
+
+  // Fetch user agreements
+  const { data: agreements, isLoading: agreementsLoading } = useQuery({
+    queryKey: ['userAgreements', user.email],
+    queryFn: async () => {
+      const response = await axiosInstance.get(`/agreements/user/${user.email}`);
+      return response.data;
+    },
+    enabled: !!user.email,
+  });
+
+  // Find active agreement
+  const activeAgreement = agreements?.find(agreement => agreement.status === 'accepted');
+
+  // Fetch payments for current month
+  const { data: payments, isLoading: paymentsLoading } = useQuery({
+    queryKey: ['userPayments', user.email, formData.month],
+    queryFn: async () => {
+      const response = await axiosInstance.get(
+        `/payments/user/${user.email}?month=${formData.month}`
+      );
+      return response.data;
+    },
+    enabled: !!user.email && !!formData.month,
+  });
+
+  // Check if payment is completed for current month
+  const paymentCompleted = payments?.some(
+    payment => payment.status === 'completed' && payment.month === formData.month
   );
-  const [transactionId, setTransactionId] = useState('');
 
-  useEffect(() => {
-    const fetchApartmentData = async () => {
-      try {
-        setFetchingData(true);
-        const response = await getUserAgreements(user.email);
-        if (response && response.length > 0) {
-          const activeAgreement = response.find(agreement => agreement.status === 'accepted');
-          if (activeAgreement) {
-            setApartment({
-              floor: activeAgreement.floor,
-              block: activeAgreement.block,
-              roomNo: activeAgreement.apartmentNo,
-              rent: activeAgreement.rent,
-              agreementId: activeAgreement._id,
-              startDate: activeAgreement.startDate,
-              endDate: activeAgreement.endDate,
-              requestedDate: activeAgreement.requestDate
-            });
-          } else {
-            setError('No active rental agreement found');
-          }
-        } else {
-          setError('No rental agreements found for your account');
+  // Apply coupon mutation
+  const applyCouponMutation = useMutation({
+    mutationFn: async (couponCode) => {
+      const response = await axiosInstance.post('/coupons/apply', { code: couponCode });
+      return response.data;
+    },
+    onSuccess: (data) => {
+      if (data.valid) {
+        let calculatedDiscount = 0;
+        let calculatedDiscountAmount = 0;
+        
+        if (data.type === 'percentage') {
+          calculatedDiscount = data.discount;
+          calculatedDiscountAmount = activeAgreement.rent * (data.discount / 100);
+        } else if (data.type === 'fixed') {
+          calculatedDiscountAmount = data.discount;
+          calculatedDiscount = (calculatedDiscountAmount / activeAgreement.rent) * 100;
         }
-      } catch (err) {
-        console.error('Error fetching agreement:', err);
-        setError('Failed to load apartment information. Please try again later.');
-      } finally {
-        setFetchingData(false);
+
+        setDiscount(calculatedDiscount);
+        setDiscountAmount(calculatedDiscountAmount);
+        setCouponApplied(true);
+        
+        Swal.fire({
+          title: 'Coupon Applied!',
+          html: `
+            <div class="text-left">
+              <p><strong>Discount:</strong> ${data.type === 'percentage' 
+                ? `${data.discount}%` 
+                : formatCurrency(data.discount)}</p>
+              <p><strong>Description:</strong> ${data.message}</p>
+            </div>
+          `,
+          icon: 'success',
+          confirmButtonColor: '#10B981',
+        });
       }
-    };
-
-    fetchApartmentData();
-  }, [user.email]);
-
-  useEffect(() => {
-    const lastPaymentMonth = localStorage.getItem('lastPaymentMonth');
-    if (lastPaymentMonth !== formData.month) {
-      localStorage.removeItem('paymentCompleted');
-      localStorage.removeItem('lastPaymentMonth');
-      setPaymentCompleted(false);
+    },
+    onError: (error) => {
+      setError(error.response?.data?.error || error.message || 'Failed to apply coupon');
+      setDiscount(0);
+      setDiscountAmount(0);
+      setCouponApplied(false);
     }
-  }, [formData.month]);
+  });
 
-  const generateTransactionId = () => {
-    return 'TXN-' + Date.now().toString(36).toUpperCase() + '-' + Math.random().toString(36).substr(2, 5).toUpperCase();
-  };
-
-  const handleApplyCoupon = async () => {
-    if (!formData.couponCode) {
-      setError('Please enter a coupon code');
-      return;
-    }
-
-    try {
-      setLoading(true);
-      setError('');
-      
-      const allCoupons = await getCoupons();
-      const coupon = allCoupons.find(c => c.code === formData.couponCode);
-      
-      if (!coupon) {
-        throw new Error('Coupon not found');
-      }
-
-      const fullCoupon = await getCouponById(coupon._id);
-      
-      if (!fullCoupon || fullCoupon.status !== 'active') {
-        throw new Error('Invalid or inactive coupon');
-      }
-
-      const currentDate = new Date();
-      if (fullCoupon.validFrom && new Date(fullCoupon.validFrom) > currentDate) {
-        throw new Error('This coupon is not yet valid');
-      }
-
-      if (fullCoupon.expiryDate && new Date(fullCoupon.expiryDate) < currentDate) {
-        throw new Error('This coupon has expired');
-      }
-
-      if (fullCoupon.minRent && apartment.rent < fullCoupon.minRent) {
-        throw new Error(`Minimum rent of ${formatCurrency(fullCoupon.minRent)} required for this coupon`);
-      }
-
-      if (fullCoupon.applicableFor && !fullCoupon.applicableFor.includes('existing-members')) {
-        throw new Error('This coupon is not applicable for your account');
-      }
-
-      let calculatedDiscount = 0;
-      let calculatedDiscountAmount = 0;
-      
-      if (fullCoupon.type === 'percentage') {
-        calculatedDiscount = fullCoupon.discount;
-        calculatedDiscountAmount = apartment.rent * (fullCoupon.discount / 100);
-      } else if (fullCoupon.type === 'fixed') {
-        calculatedDiscountAmount = fullCoupon.discount;
-        calculatedDiscount = (calculatedDiscountAmount / apartment.rent) * 100;
-      }
-
-      setDiscount(calculatedDiscount);
-      setDiscountAmount(calculatedDiscountAmount);
-      setCouponApplied(true);
+  // Submit payment mutation
+  const submitPaymentMutation = useMutation({
+    mutationFn: async (paymentData) => {
+      const response = await axiosInstance.post('/payments/request', paymentData);
+      return response.data;
+    },
+    onSuccess: (data) => {
+      setSuccess('Payment request submitted successfully!');
+      queryClient.invalidateQueries(['userPayments', user.email, formData.month]);
       
       Swal.fire({
-        title: 'Coupon Applied!',
+        title: 'Payment Request Submitted!',
         html: `
-          <div class="text-left">
-            <p><strong>Code:</strong> ${fullCoupon.code}</p>
-            <p><strong>Discount:</strong> ${fullCoupon.type === 'percentage' 
-              ? `${fullCoupon.discount}%` 
-              : formatCurrency(fullCoupon.discount)}</p>
-            <p><strong>Description:</strong> ${fullCoupon.description}</p>
+          <div class="text-left space-y-2">
+            <p class="flex items-center gap-2"><strong>Amount to Pay:</strong> ${formatCurrency(data.amount)}</p>
+            ${couponApplied ? `
+              <p class="flex items-center gap-2"><strong>Discount Applied:</strong> 
+                ${discount > 0 ? `${discount}%` : formatCurrency(discountAmount)} 
+                (${formatCurrency(discountAmount)})
+              </p>
+            ` : ''}
+            <p class="flex items-center gap-2"><strong>For Month:</strong> ${new Date(data.month + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</p>
+            <p class="flex items-center gap-2"><strong>Reference ID:</strong> ${data.transactionId}</p>
+            <p class="text-yellow-600">Please complete payment to the building management and show this reference.</p>
           </div>
         `,
         icon: 'success',
         confirmButtonColor: '#10B981',
       });
-    } catch (err) {
-      setError(err.message);
+
+      // Reset form
+      setFormData({
+        month: getCurrentMonth(),
+        couponCode: '',
+      });
+      setCouponApplied(false);
       setDiscount(0);
       setDiscountAmount(0);
-      setCouponApplied(false);
-    } finally {
-      setLoading(false);
+    },
+    onError: (error) => {
+      setError(error.response?.data?.message || error.message || 'Failed to submit payment request');
+      Swal.fire({
+        title: 'Payment Failed',
+        text: error.response?.data?.message || error.message || 'There was an error processing your payment request',
+        icon: 'error',
+        confirmButtonColor: '#EF4444',
+      });
     }
+  });
+
+  const handleApplyCoupon = () => {
+    if (!formData.couponCode) {
+      setError('Please enter a coupon code');
+      return;
+    }
+    applyCouponMutation.mutate(formData.couponCode);
   };
 
   const handleRemoveCoupon = () => {
@@ -187,89 +187,43 @@ const MakePayment = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     
-    if (!apartment) {
+    if (!activeAgreement) {
       setError('Apartment information not loaded');
       return;
     }
 
-    setLoading(true);
+    if (paymentCompleted) {
+      setError('Payment for this month is already completed');
+      return;
+    }
+
     setError('');
     setSuccess('');
 
-    try {
-      const finalAmount = apartment.rent - discountAmount;
-      const transactionId = generateTransactionId();
-      setTransactionId(transactionId);
-      
-      const paymentData = {
-        memberEmail: user.email,
-        memberId: user.id,
-        floor: apartment.floor,
-        block: apartment.block,
-        apartmentNo: apartment.roomNo,
-        rent: apartment.rent,
-        month: formData.month,
-        couponCode: couponApplied ? formData.couponCode : null,
-        discountAmount: discountAmount,
-        amount: finalAmount,
-        agreementId: apartment.agreementId,
-        transactionId: transactionId,
-        paymentMethod: 'manual', // Changed from Stripe to manual
-        status: 'pending' // Payment needs admin approval
-      };
+    const finalAmount = activeAgreement.rent - discountAmount;
+    const transactionId = `TXN-${Date.now().toString(36).toUpperCase()}`;
 
-      // Save payment to database
-      await axiosInstance.post('/payments', paymentData);
-      
-      setSuccess('Payment request submitted successfully!');
-      setPaymentCompleted(true);
-      localStorage.setItem('paymentCompleted', JSON.stringify(true));
-      localStorage.setItem('lastPaymentMonth', formData.month);
-      
-      // Reset form
-      setFormData({
-        month: getCurrentMonth(),
-        couponCode: '',
-      });
-      setCouponApplied(false);
-      setDiscount(0);
-      setDiscountAmount(0);
+    const paymentData = {
+      memberEmail: user.email,
+      memberId: user.id,
+      floor: activeAgreement.floor,
+      block: activeAgreement.block,
+      apartmentNo: activeAgreement.apartmentNo,
+      rent: activeAgreement.rent,
+      month: formData.month,
+      couponCode: couponApplied ? formData.couponCode : null,
+      discountAmount: discountAmount,
+      amount: finalAmount,
+      agreementId: activeAgreement._id,
+      transactionId: transactionId,
+      paymentMethod: 'manual',
+      status: 'pending'
+    };
 
-      // Show success message
-      Swal.fire({
-        title: 'Payment Request Submitted!',
-        html: `
-          <div class="text-left space-y-2">
-            <p class="flex items-center gap-2"><strong>Amount to Pay:</strong> ${formatCurrency(finalAmount)}</p>
-            ${couponApplied ? `
-              <p class="flex items-center gap-2"><strong>Discount Applied:</strong> 
-                ${discount > 0 ? `${discount}%` : formatCurrency(discountAmount)} 
-                (${formatCurrency(discountAmount)})
-              </p>
-            ` : ''}
-            <p class="flex items-center gap-2"><strong>Original Rent:</strong> ${formatCurrency(apartment.rent)}</p>
-            <p class="flex items-center gap-2"><strong>For Month:</strong> ${new Date(paymentData.month + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })}</p>
-            <p class="flex items-center gap-2"><strong>Reference ID:</strong> ${transactionId}</p>
-            <p class="text-yellow-600">Please complete payment to the building management and show this reference.</p>
-          </div>
-        `,
-        icon: 'success',
-        confirmButtonColor: '#10B981',
-      });
-    } catch (err) {
-      setError(err.response?.data?.message || err.message || 'Failed to submit payment request');
-      Swal.fire({
-        title: 'Payment Failed',
-        text: err.response?.data?.message || err.message || 'There was an error processing your payment request',
-        icon: 'error',
-        confirmButtonColor: '#EF4444',
-      });
-    } finally {
-      setLoading(false);
-    }
+    submitPaymentMutation.mutate(paymentData);
   };
 
-  if (fetchingData) {
+  if (agreementsLoading || paymentsLoading) {
     return (
       <div className="flex flex-col items-center justify-center h-64 space-y-4">
         <FaSpinner className="animate-spin text-4xl text-blue-500" />
@@ -278,21 +232,21 @@ const MakePayment = () => {
     );
   }
 
-  if (!apartment) {
+  if (!activeAgreement) {
     return (
       <div className="bg-white p-6 rounded-lg shadow-md max-w-3xl mx-auto">
         <div className="flex flex-col items-center justify-center space-y-4 py-8">
           <FaExclamationTriangle className="text-4xl text-yellow-500" />
           <h2 className="text-xl font-bold text-gray-800">No Active Rental Agreement</h2>
           <p className="text-gray-600 text-center">
-            {error || 'You don\'t have any active rental agreement. Please contact support if you believe this is an error.'}
+            You don't have any active rental agreement. Please contact support if you believe this is an error.
           </p>
         </div>
       </div>
     );
   }
 
-  const finalAmount = apartment.rent - discountAmount;
+  const finalAmount = activeAgreement.rent - discountAmount;
 
   return (
     <motion.div
@@ -305,6 +259,15 @@ const MakePayment = () => {
         <h2 className="text-2xl font-bold text-gray-800">Make Payment</h2>
       </div>
       
+      {paymentCompleted && (
+        <div className="bg-green-50 p-4 rounded-lg border border-green-200 mb-6">
+          <div className="flex items-center gap-2 text-green-800">
+            <FaCheckCircle />
+            <span>Payment for {new Date(formData.month + '-01').toLocaleDateString('en-US', { month: 'long', year: 'numeric' })} has been completed</span>
+          </div>
+        </div>
+      )}
+
       <form onSubmit={handleSubmit} className="space-y-6">
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           {/* Member Email */}
@@ -327,7 +290,7 @@ const MakePayment = () => {
             </label>
             <input 
               type="text" 
-              value={apartment.floor} 
+              value={activeAgreement.floor} 
               readOnly 
               className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50"
             />
@@ -340,7 +303,7 @@ const MakePayment = () => {
             </label>
             <input 
               type="text" 
-              value={apartment.block} 
+              value={activeAgreement.block} 
               readOnly 
               className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50"
             />
@@ -353,7 +316,7 @@ const MakePayment = () => {
             </label>
             <input 
               type="text" 
-              value={apartment.roomNo} 
+              value={activeAgreement.apartmentNo} 
               readOnly 
               className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50"
             />
@@ -366,7 +329,7 @@ const MakePayment = () => {
             </label>
             <input 
               type="text" 
-              value={formatCurrency(apartment.rent)} 
+              value={formatCurrency(activeAgreement.rent)} 
               readOnly 
               className="w-full p-3 border border-gray-300 rounded-lg bg-gray-50"
             />
@@ -403,7 +366,7 @@ const MakePayment = () => {
                   value={formData.couponCode} 
                   onChange={handleChange}
                   className="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 pl-10"
-                  disabled={couponApplied || loading || paymentCompleted}
+                  disabled={couponApplied || paymentCompleted}
                   placeholder="Enter coupon code"
                 />
                 <MdDiscount className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 text-xl" />
@@ -414,7 +377,7 @@ const MakePayment = () => {
               <button
                 type="button"
                 onClick={handleRemoveCoupon}
-                disabled={loading || paymentCompleted}
+                disabled={paymentCompleted}
                 className="px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 disabled:bg-gray-400 transition-colors flex items-center gap-2"
               >
                 <FaTimes /> Remove
@@ -423,11 +386,11 @@ const MakePayment = () => {
               <button
                 type="button"
                 onClick={handleApplyCoupon}
-                disabled={couponApplied || loading || !formData.couponCode || paymentCompleted}
+                disabled={!formData.couponCode || paymentCompleted || applyCouponMutation.isPending}
                 className="px-4 py-3 bg-blue-600 text-white rounded-lg hover:bg-blue-700 disabled:bg-gray-400 transition-colors flex items-center gap-2"
               >
-                {loading ? <FaSpinner className="animate-spin" /> : <FaCheck />} 
-                {loading ? 'Verifying...' : 'Apply Coupon'}
+                {applyCouponMutation.isPending ? <FaSpinner className="animate-spin" /> : <FaCheck />} 
+                {applyCouponMutation.isPending ? 'Verifying...' : 'Apply Coupon'}
               </button>
             )}
           </div>
@@ -474,7 +437,7 @@ const MakePayment = () => {
                   </div>
                 </div>
                 <div className="text-right">
-                  <p className="text-sm text-gray-600 line-through">{formatCurrency(apartment.rent)}</p>
+                  <p className="text-sm text-gray-600 line-through">{formatCurrency(activeAgreement.rent)}</p>
                   <p className="text-xl font-bold text-blue-800">{formatCurrency(finalAmount)}</p>
                 </div>
               </div>
@@ -500,16 +463,16 @@ const MakePayment = () => {
         <div className="pt-4">
           <button
             type="submit"
-            disabled={loading || paymentCompleted}
+            disabled={paymentCompleted || submitPaymentMutation.isPending}
             className={`w-full py-3 px-6 text-white font-medium rounded-lg transition-colors flex items-center justify-center gap-3 ${
               paymentCompleted
                 ? 'bg-gray-400 cursor-not-allowed' 
-                : loading 
+                : submitPaymentMutation.isPending
                   ? 'bg-green-600' 
                   : 'bg-green-600 hover:bg-green-700'
             }`}
           >
-            {loading ? (
+            {submitPaymentMutation.isPending ? (
               <>
                 <FaSpinner className="animate-spin" />
                 Processing Request...
@@ -517,7 +480,7 @@ const MakePayment = () => {
             ) : paymentCompleted ? (
               <>
                 <FaCheckCircle className="text-lg" />
-                Payment Request Submitted
+                Payment Already Completed
               </>
             ) : (
               <>

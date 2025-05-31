@@ -3,7 +3,7 @@ import { useQuery } from '@tanstack/react-query';
 import { getAdminStats } from '../utils';
 import { checkAdmin } from '../utils/useUser';
 import { useAuth } from '../hook/useAuth';
-import { Bed, Check, Home, Users, UserRound, BarChart4, Loader2, AlertCircle } from 'lucide-react';
+import { Bed, Check, Home, Users, UserRound, BarChart4, Loader2, AlertCircle, DollarSign } from 'lucide-react';
 import StatCard from '../components/StatCard';
 
 const AdminProfile = () => {
@@ -16,13 +16,16 @@ const AdminProfile = () => {
     enabled: !!user?.email,
   });
   
-
   // Fetch admin stats
   const { data: stats, isLoading: statsLoading, error: statsError } = useQuery({
     queryKey: ['adminStats'],
     queryFn: getAdminStats,
     enabled: isAdmin, 
   });
+
+  // Calculate percentages based on the stats
+  const availablePercentage = stats ? (stats.availableApartments / stats.apartments * 100) : 0;
+  const unavailablePercentage = stats ? 100 - availablePercentage : 0;
 
   if (isAdminLoading || statsLoading) {
     return (
@@ -84,98 +87,106 @@ const AdminProfile = () => {
         </div>
       </div>
 
-      {/* Stats Grid with Hover Effects */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 xl:grid-cols-5 gap-6">
+      {/* Stats Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatCard 
-          title="Total Rooms" 
-          value={stats?.totalRooms || 0}
+          title="Total Apartments" 
+          value={stats?.apartments || 0}
           icon={<Home className="w-6 h-6" />}
-          color="yellow-200"
-          trend={stats?.roomsTrend}
-          description="Total available rooms"
-          className="hover:scale-[1.02] transition-transform duration-300"
+          color="primary"
+          description="Total apartments in system"
         />
         <StatCard 
           title="Available" 
-          value={`${stats?.availableRoomsPercentage?.toFixed(2) || 0}%`}
+          value={`${availablePercentage.toFixed(2)}%`}
           icon={<Check className="w-6 h-6" />}
           color="success"
-          trend={stats?.availabilityTrend}
-          description="Rooms ready for booking"
-          className="hover:scale-[1.02] transition-transform duration-300"
+          description="Available apartments"
         />
         <StatCard 
-          title="Occupied" 
-          value={`${stats?.occupiedRoomsPercentage?.toFixed(2) || 0}%`}
+          title="Unavailable" 
+          value={`${unavailablePercentage.toFixed(2)}%`}
           icon={<Bed className="w-6 h-6" />}
           color="warning"
-          trend={stats?.occupancyTrend}
-          description="Currently occupied rooms"
-          className="hover:scale-[1.02] transition-transform duration-300"
+          description="Occupied or under agreement"
         />
         <StatCard 
           title="Total Users" 
-          value={stats?.totalUsers || 0}
+          value={stats?.users || 0}
           icon={<Users className="w-6 h-6" />}
           color="info"
-          trend={stats?.usersTrend}
           description="Registered users"
-          className="hover:scale-[1.02] transition-transform duration-300"
         />
         <StatCard 
           title="Members" 
-          value={stats?.totalMembers || 0}
+          value={stats?.members || 0}
           icon={<UserRound className="w-6 h-6" />}
           color="secondary"
-          trend={stats?.membersTrend}
           description="Premium members"
-          className="hover:scale-[1.02] transition-transform duration-300"
+        />
+        <StatCard 
+          title="Payments" 
+          value={stats?.payments || 0}
+          icon={<DollarSign className="w-6 h-6" />}
+          color="accent"
+          description="Total transactions"
+        />
+        <StatCard 
+          title="Revenue" 
+          value={`$${stats?.revenue || 0}`}
+          icon={<DollarSign className="w-6 h-6" />}
+          color="success"
+          description="Total revenue"
+        />
+        <StatCard 
+          title="Available Units" 
+          value={stats?.availableApartments || 0}
+          icon={<Home className="w-6 h-6" />}
+          color="info"
+          description="Ready for booking"
         />
       </div>
 
       {/* Additional Stats Section */}
-      {stats && (
-        <div className="mt-12 bg-gradient-to-r from-primary/10 to-secondary/10 p-6 rounded-2xl border border-base-200">
-          <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-            <BarChart4 className="w-5 h-5" />
-            Performance Overview
-          </h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <div className="stats bg-base-100 shadow">
-              <div className="stat">
-                <div className="stat-figure text-primary">
-                  <Check className="w-6 h-6" />
-                </div>
-                <div className="stat-title">Monthly Bookings</div>
-                <div className="stat-value">{stats.monthlyBookings || 0}</div>
-                <div className="stat-desc">↗︎ {stats.bookingIncrease || 0}% from last month</div>
-              </div>
+      <div className="mt-12 bg-gradient-to-r from-primary/10 to-secondary/10 p-6 rounded-2xl border border-base-200">
+        <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
+          <BarChart4 className="w-5 h-5" />
+          Detailed Statistics
+        </h3>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div className="stats bg-base-100 shadow">
+            <div className="stat">
+              <div className="stat-title">Total Apartments</div>
+              <div className="stat-value">{stats?.apartments || 0}</div>
+              <div className="stat-desc">In the database</div>
             </div>
-            
-            <div className="stats bg-base-100 shadow">
-              <div className="stat">
-                <div className="stat-figure text-secondary">
-                  <UserRound className="w-6 h-6" />
-                </div>
-                <div className="stat-title">New Users</div>
-                <div className="stat-value">{stats.newUsers || 0}</div>
-                <div className="stat-desc">↗︎ {stats.userGrowth || 0}% growth</div>
-              </div>
+          </div>
+          
+          <div className="stats bg-base-100 shadow">
+            <div className="stat">
+              <div className="stat-title">Available Apartments</div>
+              <div className="stat-value">{stats?.availableApartments || 0}</div>
+              <div className="stat-desc">{availablePercentage.toFixed(2)}% of total</div>
             </div>
-            
-            <div className="stats bg-base-100 shadow">
-              <div className="stat">
-                <div className="stat-figure text-warning">
-                  <Bed className="w-6 h-6" />
-                </div>
-                <div className="stat-title">Avg. Occupancy</div>
-                <div className="stat-value">{stats.avgOccupancy?.toFixed(1) || 0}%</div>
-                <div className="stat-desc">↘︎ {stats.occupancyChange || 0}% from average</div>
-              </div>
+          </div>
+          
+          <div className="stats bg-base-100 shadow">
+            <div className="stat">
+              <div className="stat-title">Total Users</div>
+              <div className="stat-value">{stats?.users || 0}</div>
+              <div className="stat-desc">Registered in system</div>
+            </div>
+          </div>
+          
+          <div className="stats bg-base-100 shadow">
+            <div className="stat">
+              <div className="stat-title">Premium Members</div>
+              <div className="stat-value">{stats?.members || 0}</div>
+              <div className="stat-desc">{stats?.users ? ((stats.members / stats.users * 100).toFixed(2) + '% of users') : '0%'}</div>
             </div>
           </div>
         </div>
-      )}
+      </div>
     </div>
   );
 };
