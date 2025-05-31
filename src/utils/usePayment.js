@@ -20,15 +20,7 @@ export const getUserPayments = async (email) => {
   }
 };
 
-export const createPaymentIntent = async (amount) => {
-  try {
-    const response = await axiosInstance.post("/create-payment-intent", { amount });
-    return response.data.clientSecret;
-  } catch (error) {
-    //console.error("Failed to create payment intent:", error);
-    throw error;
-  }
-};
+
 
 export const savePayment = async (paymentData) => {
   try {

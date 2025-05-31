@@ -83,7 +83,7 @@ const MemberProfile = () => {
             <InfoCard
               icon={<FaCalendarAlt className="text-blue-500 text-xl" />}
               label="Agreement Date"
-              value={agreement?.createdAt ? formatDate(agreement.createdAt) : 'None'}
+              value={agreement?.startDate ? formatDate(agreement.startDate) : 'None'}
             />
             <InfoCard
               icon={<FaBuilding className="text-indigo-500 text-xl" />}

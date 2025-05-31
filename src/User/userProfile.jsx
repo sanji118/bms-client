@@ -33,7 +33,7 @@ const UserProfile = () => {
     queryFn: () => getUserAgreements(email),
     enabled: !!email,
   });
-  console.log(user);
+  //consoleole.log(user);
 
   const agreement = agreements?.[0] || null;
   const hasAgreement = agreement && agreement.status === "accepted";
