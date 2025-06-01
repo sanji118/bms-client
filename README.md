@@ -5,7 +5,7 @@
 ## 🌐 Live URLs
 
 - **Client**: [https://home-haven-8d2d8.web.app](https://home-haven-8d2d8.web.app)
-- **Server**: [https://bms-server-amber.vercel.app](https://bms-server-drab.vercel.app)
+- **Server**: [https://bms-server-eight.vercel.app](https://bms-server-drab.vercel.app)
 
 ---
 
